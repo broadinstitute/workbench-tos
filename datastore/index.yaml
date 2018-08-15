@@ -1,0 +1,8 @@
+indexes:
+
+- kind: TOSResponse
+  ancestor: yes
+  properties:
+  - name: userid
+  - name: timestamp
+    direction: desc
