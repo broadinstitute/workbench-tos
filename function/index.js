@@ -28,11 +28,25 @@ const kindApplication = 'Application';
 const kindTos = 'TermsOfService';
 const kindUserResponse = 'TOSResponse';
 
-function generateTosKey(appId, tosVersion) {
+function tosKeyArrayParts(appId, tosVersion) {
+  return [kindApplication, appId, kindTos, tosVersion.toString()];
+}
+
+function generateKey(keyparts) {
   return datastore.key({
     namespace: appNamespace,
-    path: [kindApplication, appId, kindTos, tosVersion.toString()]
+    path: keyparts
   });
+}
+
+function generateTosKey(appId, tosVersion) {
+  return generateKey(tosKeyArrayParts(appId, tosVersion));
+}
+
+function generateUserResponseKey(appId, tosVersion) {
+  let userResponseParts = tosKeyArrayParts(appId, tosVersion);
+  userResponseParts.push(kindUserResponse);
+  return generateKey(userResponseParts);
 }
 
 /**
@@ -54,9 +68,6 @@ function authorize(authHeader) {
       auth: {
         bearer: token
       },
-      // headers: {
-      //   'Authorization': authHeader
-      // },
       json: true
     };
     return persistentRequest(reqOptions)
@@ -75,15 +86,24 @@ function authorize(authHeader) {
   }
 }
 
-/*
-function insertUserResponse(subjectId, appId, tosVersion, accepted, req, res) {
-  const userResponseKey = generateUserResponseKey(appId, tosVersion, subjectId, accepted);
+function insertUserResponse(userinfo, reqinfo) {
+  // extract vars we need from the userinfo/reqinfo
+  const userid = userinfo.user_id;
+  const email = userinfo.email;
+  const appid = reqinfo.appid;
+  const tosversion = reqinfo.tosversion;
+  const accepted = reqinfo.accepted;
+
   const userResponseEntity = {
-    key: userResponseKey,
+    key: generateUserResponseKey(appid, tosversion),
     data: [
       {
         name: 'userid',
-        value: subjectId
+        value: userid
+      },
+      {
+        name: 'email',
+        value: email
       },
       {
         name: 'timestamp',
@@ -95,21 +115,15 @@ function insertUserResponse(subjectId, appId, tosVersion, accepted, req, res) {
       },
     ]
   };
-  datastore
+  return datastore
     .save(userResponseEntity)
-    .then((saved) => {
+    .then( saved => {
       console.log('Task ${userResponseKey.id} created successfully.');
-      res.status(200).send('Task ${userResponseKey.id} created successfully.');
+      return saved;
     })
     .catch(err => {
-      console.error('ERROR:', err);
-      res.status(500).send(err);
+      throwResponseError(500, err);
     });
-}
-*/
-
-function handlePost(req, res) {
-  throwResponseError(420, "POST not ready yet.");
 }
 
 function getUserResponse(userinfo, reqinfo) {  
@@ -248,12 +262,7 @@ function respondWithError(res, error, prefix) {
     - move supporting functions to separate file(s)
     - unit tests / shims
     - if POST request:
-      - grab access token from Authorization header
-      - call tokeninfo to verify access token validity
-      - grab subject id from tokeninfo response
-      - grab tosVersion, appId, accepted from request params (default to appId=FireCloud)
-      - verify tosVersion exists (what do if it doesn't?)
-      - insert/create TOSRESPONSE(subjectid, timestamp, accepted) with ancestor TOS(appId, tosVersion)
+      - verify Application and TermsOfService ancestors exist before inserting (what do if they don't?)
   */
 /**
  * Main function. Validates incoming requests, reads or writes to Datastore (GET or POST, respectively),
@@ -281,7 +290,13 @@ exports.tos = (req, res) => {
                 respondWithError(res, err, 'Error querying for user response: ');
               });
           } else if (req.method == 'POST') {
-            handlePost(userinfo, reqinfo);
+            insertUserResponse(userinfo, reqinfo)
+              .then( userResponse => {
+                res.status(200).json(userResponse);
+              })
+              .catch( err => {
+                respondWithError(res, err, 'Error writing user response: ');
+              });
           } else {
             // this should never happen, given the validateRequestMethod call above
             res.status(405).send();
