@@ -222,7 +222,7 @@ function validateInputs(req) {
   if (typeof appid != 'string' && !(appid instanceof String)) {
     inputErrors.push('appid must be a String.');
   }
-  if (typeof tosversion != 'number') {
+  if (isNaN(tosversion) || typeof tosversion != 'number') {
     inputErrors.push('tosversion must be a Number.');
   }
 
@@ -252,8 +252,8 @@ function respondWithError(res, error, prefix) {
   const code = error.statusCode || 500;
   const pre = prefix || '';
   const respBody = pre + (error.message || JSON.stringify(error));
-  console.error('Error ' + code + ': ' + respBody);
-  res.status(code).send(respBody);  
+  // console.error('Error ' + code + ': ' + respBody);
+  res.status(code).send(respBody);
 }
 
   /*
