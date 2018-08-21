@@ -217,6 +217,9 @@ function validateInputs(req) {
     if (typeof accepted != 'boolean') {
       inputErrors.push('accepted must be a Boolean.');
     }
+  } else {
+    // this should never happen, since validateRequestMethod is called before this method
+    throwResponseError(405);
   }
 
   if (typeof appid != 'string' && !(appid instanceof String)) {
