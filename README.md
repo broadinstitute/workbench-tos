@@ -9,7 +9,7 @@ APIs - currently implemented as a Cloud Function - for users' responses to Terms
 5. `npm test`
 
 ## Optimizing test runs
-By default, `npm test` will redeploy the function code to the emulator every time it runs. This is slow. If you are not changing function code between test runs - for instance, you are writing new tests - you may want to disable auto-deploy. Do this by commenting out the single line of code in [updateFunction.sh](test/updateFunction.sh).
+By default, `npm test` will redeploy the function code to the emulator every time it runs. This is slow. If you are not changing function code between test runs - for instance, you are writing new tests - you may want to disable auto-deploy. Do this by commenting out the single line of code in [updateFunction.sh](function/test/updateFunction.sh).
 
 
 
