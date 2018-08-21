@@ -8,7 +8,7 @@ The TOS function expects three Datastore kinds: `Application`, `TermsOfService`,
 All `TOSResponse` entities must have a `TermsOfService` entity as their ancestor, and all `TermsOfService` entities must have an `Application` entity as their ancestor.
 
 ## Application
-The `Application` kind does not expect any additional propertie. You may add some; this code does not care.
+The `Application` kind does not expect any additional properties. You may add some; this code does not care.
 
 The `Application` kind **must** have a user-supplied key that represents the name of the application, ex. 'FireCloud'.
 
