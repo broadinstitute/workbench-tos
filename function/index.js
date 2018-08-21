@@ -205,7 +205,9 @@ function validateInputs(req) {
     try {
       tosversion = parseFloat(req.query['tosversion']);
     } catch (parseError) {
-      // noop - will be handled in the typeof validation later
+      // swallow the error. Unparsable values will result in NaN, and the typecheck
+      // further down in this method (isNaN / typeof != 'number') will handle this case.
+      console.warn('error parsing tosversion value: ' + req.query['tosversion']);
     }
   } else if (req.method == 'POST') {
     if (req.body != Object(req.body)) {
@@ -255,7 +257,7 @@ function respondWithError(res, error, prefix) {
   const code = error.statusCode || 500;
   const pre = prefix || '';
   const respBody = pre + (error.message || JSON.stringify(error));
-  // console.error('Error ' + code + ': ' + respBody);
+  console.error(new Error('Error ' + code + ': ' + respBody));
   res.status(code).send(respBody);
 }
 
