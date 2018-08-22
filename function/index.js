@@ -116,6 +116,9 @@ function insertUserResponse(userinfo, reqinfo) {
       },
     ]
   };
+
+  // TODO: verify Application and TermsOfService ancestors exist before inserting (what do if they don't?)
+
   return datastore
     .save(userResponseEntity)
     .then( saved => {
@@ -166,7 +169,7 @@ function getUserResponse(userinfo, reqinfo) {
 }
 
 function validateRequestUrl(req) {
-  if (req.path != '/v1/userresponse' && req.path != '/userresponse') {
+  if (req.path != '/v1/user/response' && req.path != '/user/response') {
     throwResponseError(404);
   }
 }
@@ -258,7 +261,11 @@ function respondWithError(res, error, prefix) {
   const code = error.statusCode || 500;
   const pre = prefix || '';
   const respBody = pre + (error.message || JSON.stringify(error));
-  console.error(new Error('Error ' + code + ': ' + respBody));
+  // suppress error logging for unit tests
+  // TODO: we should only log true runtime errors as Errors, and log bad user inputs etc. as warnings.
+  if (process.env.NODE_ENV !== 'test') {
+    console.error(new Error('Error ' + code + ': ' + respBody));
+  }
   res.status(code).send(respBody);
 }
 

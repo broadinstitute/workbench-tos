@@ -3,6 +3,8 @@ const sinon = require('sinon');
 
 const tos = require('..').tos;
 
+process.env.NODE_ENV = 'test';
+
 function stubbedRes() {
     return {
         setHeader: sinon.stub(),
@@ -13,7 +15,7 @@ function stubbedRes() {
 
 test('tos: should 404 on incorrect url path', t => {
     const req = {
-        path: '/not/correct/userresponse/path',
+        path: '/not/correct/user/response/path',
         headers: {
             origin: 'unittest'
         },
@@ -33,7 +35,7 @@ test('tos: should 404 on incorrect url path', t => {
 
 test('tos: should 401 on correct path but without Authorization header', t => {
     const req = {
-        path: '/v1/userresponse',
+        path: '/v1/user/response',
         headers: {
             origin: 'unittest'
         },
@@ -53,7 +55,7 @@ test('tos: should 401 on correct path but without Authorization header', t => {
 
 test('tos: should 400 on GET correct path and Authorization header but without query params', t => {
     const req = {
-        path: '/v1/userresponse',
+        path: '/v1/user/response',
         headers: {
             origin: 'unittest',
             authorization: 'fake'
@@ -74,7 +76,7 @@ test('tos: should 400 on GET correct path and Authorization header but without q
 
 test('tos: should 400 on GET correct path and Authorization header but missing tosversion from query params', t => {
     const req = {
-        path: '/v1/userresponse',
+        path: '/v1/user/response',
         headers: {
             origin: 'unittest',
             authorization: 'fake'
@@ -97,7 +99,7 @@ test('tos: should 400 on GET correct path and Authorization header but missing t
 
 test('tos: should 400 on GET correct path and Authorization header, but tosversion is non-numeric in query params', t => {
     const req = {
-        path: '/v1/userresponse',
+        path: '/v1/user/response',
         headers: {
             origin: 'unittest',
             authorization: 'fake'
@@ -121,7 +123,7 @@ test('tos: should 400 on GET correct path and Authorization header, but tosversi
 
 test('tos: should 400 on GET correct path and Authorization header but missing appid from query params', t => {
     const req = {
-        path: '/v1/userresponse',
+        path: '/v1/user/response',
         headers: {
             origin: 'unittest',
             authorization: 'fake'
@@ -146,7 +148,7 @@ const invalidMethods = ['PUT','DELETE','HEAD','PATCH','TRACE','CONNECT'];
 invalidMethods.forEach( method => {
     test('tos: should 405 on ' + method + ' verb', t => {
         const req = {
-            path: '/v1/userresponse',
+            path: '/v1/user/response',
             headers: {
                 origin: 'unittest',
                 authorization: 'fake'
@@ -170,7 +172,7 @@ invalidMethods.forEach( method => {
 
 test('tos: should 415 on POST without a content-type', t => {
     const req = {
-        path: '/v1/userresponse',
+        path: '/v1/user/response',
         headers: {
             origin: 'unittest',
             authorization: 'fake'
@@ -189,7 +191,7 @@ test('tos: should 415 on POST without a content-type', t => {
 
 test('tos: should 415 on POST with the wrong content-type', t => {
     const req = {
-        path: '/v1/userresponse',
+        path: '/v1/user/response',
         headers: {
             origin: 'unittest',
             authorization: 'fake',
@@ -209,7 +211,7 @@ test('tos: should 415 on POST with the wrong content-type', t => {
 
 test('tos: should 400 on POST with the right content-type but no body', t => {
     const req = {
-        path: '/v1/userresponse',
+        path: '/v1/user/response',
         headers: {
             origin: 'unittest',
             authorization: 'fake',
@@ -230,7 +232,7 @@ test('tos: should 400 on POST with the right content-type but no body', t => {
 
 test('tos: should 400 on POST with the right content-type but empty body', t => {
     const req = {
-        path: '/v1/userresponse',
+        path: '/v1/user/response',
         headers: {
             origin: 'unittest',
             authorization: 'fake',
@@ -252,7 +254,7 @@ test('tos: should 400 on POST with the right content-type but empty body', t => 
 
 test('tos: should 400 on POST when missing accepted from body', t => {
     const req = {
-        path: '/v1/userresponse',
+        path: '/v1/user/response',
         headers: {
             origin: 'unittest',
             authorization: 'fake',
@@ -277,7 +279,7 @@ test('tos: should 400 on POST when missing accepted from body', t => {
 
 test('tos: should 400 on POST when accepted is non-Boolean in body', t => {
     const req = {
-        path: '/v1/userresponse',
+        path: '/v1/user/response',
         headers: {
             origin: 'unittest',
             authorization: 'fake',
@@ -303,7 +305,7 @@ test('tos: should 400 on POST when accepted is non-Boolean in body', t => {
 
 test('tos: should 400 on POST when missing appid from body', t => {
     const req = {
-        path: '/v1/userresponse',
+        path: '/v1/user/response',
         headers: {
             origin: 'unittest',
             authorization: 'fake',
@@ -328,7 +330,7 @@ test('tos: should 400 on POST when missing appid from body', t => {
 
 test('tos: should 400 on POST when missing tosversion from body', t => {
     const req = {
-        path: '/v1/userresponse',
+        path: '/v1/user/response',
         headers: {
             origin: 'unittest',
             authorization: 'fake',
@@ -353,7 +355,7 @@ test('tos: should 400 on POST when missing tosversion from body', t => {
 
 test('tos: should 400 on POST when tosversion is non-numeric in body', t => {
     const req = {
-        path: '/v1/userresponse',
+        path: '/v1/user/response',
         headers: {
             origin: 'unittest',
             authorization: 'fake',
