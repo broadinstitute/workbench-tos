@@ -117,9 +117,9 @@ function insertUserResponse(userinfo, reqinfo) {
     ]
   };
 
-  // TODO: verify Application and TermsOfService ancestors exist before inserting (what do if they don't?)
-
-  return datastore
+  // verify Application and TermsOfService ancestors exist before inserting
+  return getTOS(appid, tosversion).then( () => {
+    return datastore
     .save(userResponseEntity)
     .then( saved => {
       console.log('Task ${userResponseKey.id} created successfully.');
@@ -127,6 +127,39 @@ function insertUserResponse(userinfo, reqinfo) {
     })
     .catch(err => {
       throwResponseError(500, err);
+    });
+  })
+  .catch(err => {
+    if (err.statusCode) {
+      throwResponseError(err.statusCode, err);
+    } else {
+      throwResponseError(500, err);
+    }
+  });
+}
+
+function getTOS(appid, tosversion) {
+  const query = datastore
+  .createQuery(appNamespace, kindTos)
+  .filter('__key__', generateTosKey(appid, tosversion));
+
+  return datastore
+    .runQuery(query)
+    .then( results => {
+      // results object is an array that contains [0]: array of rows returned; [1]: metadata about the results
+      const hits = results[0];
+      if (hits.length == 1) {
+        return Promise.resolve(hits[0]);
+      } else {
+        throwResponseError(400, 'TermsOfService ' + appid + '/' + tosversion + ' does not exist.');
+      }
+    })
+    .catch(err => {
+      if (err.statusCode) {
+        throwResponseError(err.statusCode, err);
+      } else {
+        throwResponseError(500, err);
+      }
     });
 }
 
