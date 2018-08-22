@@ -1,4 +1,28 @@
 {
-  "name": "sample-http",
-  "version": "0.0.1"
+  "name": "tos",
+  "version": "0.0.1",
+  "private": true,
+  "description": "TOS APIs for Workbench",
+  "license": "MIT",
+  "author": "Broad Institute",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/broadinstitute/workbench-tos"
+  },
+  "scripts": {
+    "lint": "eslint --ignore-path ../.gitignore .",
+    "test": "export FUNCTIONS_CMD='functions-emulator' && sh test/updateFunction.sh && export BASE_URL=\"http://localhost:8010/$GCP_PROJECT/$GCF_REGION\" && ava -T 20s --verbose -c 1 test/index.test.js test/*unit*test.js test/*integration*test.js"
+  },
+  "devDependencies": {
+    "ava": "0.25.0",
+    "sinon": "4.4.8",
+    "eslint": "^5.4.0",
+    "eslint-config-strongloop": "^2.1.0"
+  },
+  "dependencies": {
+    "@google-cloud/datastore": "^1.4.1",
+    "cors": "^2.8.4",
+    "request": "^2.88.0",
+    "request-promise-native": "^1.0.5"
+  }
 }
