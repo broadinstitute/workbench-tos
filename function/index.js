@@ -72,6 +72,7 @@ function authorize(authHeader) {
     };
     return persistentRequest(reqOptions)
       .then((userinfo) => {
+        // TODO: validate audience and/or whitelisted email suffixes
         return userinfo;
       })
       .catch((err) => {
