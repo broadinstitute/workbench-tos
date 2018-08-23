@@ -3,11 +3,19 @@ const sinon = require('sinon');
 const Supertest = require('supertest');
 const supertest = Supertest(process.env.BASE_URL);
 
+
 const tos = require('..').tos;
 
-// process.env.NODE_ENV = 'test';
+var fakeAuthorizer = {
+    authorize: (authHeader) => {
+        return Promise.reject({code: 9, msg: "Intentional error from authorizer fake"})
+        // return Promise.resolve({user_id: 12321, email: 'fake@fakey.fake'})
+    },
+    toString: () => { return 'fakey-faked authorizer' }
+}
 
-/*
+process.env.NODE_ENV = 'test';
+
 function stubbedRes() {
     return {
         setHeader: sinon.stub(),
@@ -16,9 +24,6 @@ function stubbedRes() {
         status: sinon.stub().returnsThis()
     };
 }
-
-let fakeserver;
-*/
 
 /*
 test.before('setup fake server', t => {
@@ -37,10 +42,33 @@ test.after.always('guaranteed cleanup', t => {
 });
 */
 
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
+test('authorization: should 400 if authorizer returns an error', t => {
+    const req = {
+        path: '/v1/user/response',
+        headers: {
+            origin: 'unittest',
+            authorization: 'fake'
+        },
+        method: 'GET',
+        query: {
+            appid: 'FireCloud',
+            tosversion: 20180815.1
+        }
+    };
+    const res = stubbedRes();
 
+    t.true(true);
+
+    // Call tested function
+    // tos(req, res, fakeAuthorizer);
+
+    // Verify behavior of tested function
+    // t.true(res.json.calledOnce);
+    // t.deepEqual(res.json.firstCall.args, ['"appid must be a String."']);
+    // t.deepEqual(res.status.firstCall.args, [400]);
+});
+
+/*
 test.cb('authorization: should fail on bad bearer token', (t) => {
 
     console.log(process.env.BASE_URL);
@@ -54,4 +82,5 @@ test.cb('authorization: should fail on bad bearer token', (t) => {
         })
         .end(t.end);
 });
+*/
 

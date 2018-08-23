@@ -1,4 +1,5 @@
 const auth = require('./authorization');
+const ds = require('./datastore');
 
 // handle CORS requests via 'cors' library
 const corsOptions = {
@@ -6,154 +7,6 @@ const corsOptions = {
   allowedHeaders: ['Authorization','Content-Type','Accept','Origin','X-App-ID']
 }
 const cors = require('cors')(corsOptions);
-
-// Read the project ID from environment
-const projectId = process.env.GCP_PROJECT;
-// Create datastore client
-const Datastore = require('@google-cloud/datastore');
-const datastore = new Datastore({
-  projectId: projectId,
-});
-
-// Datastore namespace and kinds
-const appNamespace = 'app';
-const kindApplication = 'Application';
-const kindTos = 'TermsOfService';
-const kindUserResponse = 'TOSResponse';
-
-function tosKeyArrayParts(appId, tosVersion) {
-  return [kindApplication, appId, kindTos, tosVersion.toString()];
-}
-
-function generateKey(keyparts) {
-  return datastore.key({
-    namespace: appNamespace,
-    path: keyparts
-  });
-}
-
-function generateTosKey(appId, tosVersion) {
-  return generateKey(tosKeyArrayParts(appId, tosVersion));
-}
-
-function generateUserResponseKey(appId, tosVersion) {
-  let userResponseParts = tosKeyArrayParts(appId, tosVersion);
-  userResponseParts.push(kindUserResponse);
-  return generateKey(userResponseParts);
-}
-
-function insertUserResponse(userinfo, reqinfo) {
-  // extract vars we need from the userinfo/reqinfo
-  const userid = userinfo.user_id;
-  const email = userinfo.email;
-  const appid = reqinfo.appid;
-  const tosversion = reqinfo.tosversion;
-  const accepted = reqinfo.accepted;
-
-  const userResponseEntity = {
-    key: generateUserResponseKey(appid, tosversion),
-    data: [
-      {
-        name: 'userid',
-        value: userid
-      },
-      {
-        name: 'email',
-        value: email
-      },
-      {
-        name: 'timestamp',
-        value: new Date().toJSON()
-      },
-      {
-        name: 'accepted',
-        value: accepted
-      },
-    ]
-  };
-
-  // verify Application and TermsOfService ancestors exist before inserting
-  return getTOS(appid, tosversion).then( () => {
-    return datastore
-    .save(userResponseEntity)
-    .then( saved => {
-      return saved;
-    })
-    .catch(err => {
-      throwResponseError(500, err);
-    });
-  })
-  .catch(err => {
-    if (err.statusCode) {
-      throwResponseError(err.statusCode, err);
-    } else {
-      throwResponseError(500, err);
-    }
-  });
-}
-
-function getTOS(appid, tosversion) {
-  const query = datastore
-  .createQuery(appNamespace, kindTos)
-  .filter('__key__', generateTosKey(appid, tosversion));
-
-  return datastore
-    .runQuery(query)
-    .then( results => {
-      // results object is an array that contains [0]: array of rows returned; [1]: metadata about the results
-      const hits = results[0];
-      if (hits.length == 1) {
-        return Promise.resolve(hits[0]);
-      } else {
-        throwResponseError(400, 'TermsOfService ' + appid + '/' + tosversion + ' does not exist.');
-      }
-    })
-    .catch(err => {
-      if (err.statusCode) {
-        throwResponseError(err.statusCode, err);
-      } else {
-        throwResponseError(500, err);
-      }
-    });
-}
-
-function getUserResponse(userinfo, reqinfo) {  
-  const userid = userinfo.user_id;
-  const tosversion = reqinfo.tosversion;
-  const appid = reqinfo.appid;
-
-  const query = datastore
-    .createQuery(appNamespace, kindUserResponse)
-    .hasAncestor(generateTosKey(appid, tosversion))
-    .filter('userid', userid.toString())
-    .order('timestamp', {descending: true})
-    .limit(1);
-  
-  return datastore
-    .runQuery(query)
-    .then(results => {
-      // results object is an array that contains [0]: array of rows returned; [1]: metadata about the results
-      const hits = results[0];
-      if (hits.length == 1) {
-        if (hits[0].accepted) {
-          return Promise.resolve(hits[0]);
-        } else {
-          throwResponseError(403,'user declined TOS');
-        }
-      } else if (hits.length > 1) {
-        throwResponseError(500,'unexpected: returned too many results');
-      } else {
-        throwResponseError(404);
-      }
-    })
-    .catch(err => {
-      if (err.statusCode) {
-        throwResponseError(err.statusCode, err);
-      } else {
-        throwResponseError(500, err);
-      }
-    });
-}
 
 function validateRequestUrl(req) {
   if (req.path != '/v1/user/response' && req.path != '/user/response') {
@@ -264,26 +117,26 @@ function respondWithError(res, error, prefix) {
     - if POST request:
       - verify Application and TermsOfService ancestors exist before inserting (what do if they don't?)
   */
-/**
- * Main function. Validates incoming requests, reads or writes to Datastore (GET or POST, respectively),
- * responds with successes or errors.
- * 
- * @param {!Object} req HTTP request context.
- * @param {!Object} res HTTP response context.
- */
-exports.tos = (req, res) => {
+
+exports.tos = (req, res, authClient, datastoreClient) => {
   try {
+    // unit tests may override these. At runtime, when called as a live Cloud Function from tos(),
+    // authClient and datastoreClient will be null.
+    const authorizer = authClient || auth.getAuthorizer();
+    const datastore = datastoreClient || ds.getDatastoreClient();
+
     validateRequestUrl(req);
     validateRequestMethod(req);
     validateContentType(req);
     cors(req, res, () => {
       const authHeader = requireAuthorizationHeader(req);
       const reqinfo = validateInputs(req);
-      const authorizer = auth.getAuthorizer();
+
+      console.log('using authorizer: ' + authorizer.toString());
       authorizer.authorize(authHeader)
         .then( userinfo => {
           if (req.method == 'GET') {
-            getUserResponse(userinfo, reqinfo)
+            datastore.getUserResponse(userinfo, reqinfo)
               .then( userResponse => {
                 res.status(200).json(userResponse);
               })
@@ -291,7 +144,7 @@ exports.tos = (req, res) => {
                 respondWithError(res, err, 'Error querying for user response: ');
               });
           } else if (req.method == 'POST') {
-            insertUserResponse(userinfo, reqinfo)
+            datastore.insertUserResponse(userinfo, reqinfo)
               .then( userResponse => {
                 res.status(200).json(userResponse);
               })
@@ -311,3 +164,25 @@ exports.tos = (req, res) => {
     respondWithError(res, err);
   }
 };
+
+/**
+ * Main entry point for the Cloud Function.
+ * 
+ * Due to Cloud Function signature requirements, this function writes to the result object
+ * but does not return a result. Therefore it is hard to test; keep this function small
+ * and make its implementation - tosapi() - the testable one.
+ * 
+ */
+exports.tosshell = (req, res) => {
+  try {
+    tosapi(req)
+      .then( (tosresult) => {
+        res.status(200).json(tosresult);
+      })
+      .catch( (err) => {
+        respondWithError(res, err);
+      })
+  } catch (err) {
+    respondWithError(res, err);
+  }
+}
