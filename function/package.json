@@ -15,9 +15,10 @@
   },
   "devDependencies": {
     "ava": "0.25.0",
-    "sinon": "4.4.8",
     "eslint": "^5.4.0",
-    "eslint-config-strongloop": "^2.1.0"
+    "eslint-config-strongloop": "^2.1.0",
+    "sinon": "4.4.8",
+    "supertest": "^3.1.0"
   },
   "dependencies": {
     "@google-cloud/datastore": "^1.4.1",

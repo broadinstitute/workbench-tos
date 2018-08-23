@@ -1,11 +1,4 @@
-// Create persistent/pipelined http client for outbound requests
-const requestPromise = require('request-promise-native');
-const persistentRequest = requestPromise.defaults({
-  forever: true
-});
-
-// Google REST API for tokeninfo
-const tokenInfoUrl = 'https://www.googleapis.com/oauth2/v2/tokeninfo';
+const auth = require('./authorization');
 
 // handle CORS requests via 'cors' library
 const corsOptions = {
@@ -49,44 +42,6 @@ function generateUserResponseKey(appId, tosVersion) {
   return generateKey(userResponseParts);
 }
 
-/**
- * Extracts an Authorization header from the request, then queries
- * Google for token information using that auth header.
- * 
- * Returns a Promise that contains Google's tokeninfo response,
- * or rejects with an http status code and error.
- *  
- * @param {*} req the original request
- */
-function authorize(authHeader) {
-  if (authHeader) {
-    const token = authHeader.replace('Bearer ','');
-    const reqUrl = tokenInfoUrl + '?access_token=' + token;
-    const reqOptions = {
-      method: 'GET',
-      uri: reqUrl,
-      auth: {
-        bearer: token
-      },
-      json: true
-    };
-    return persistentRequest(reqOptions)
-      .then((userinfo) => {
-        // TODO: validate audience and/or whitelisted email suffixes
-        return userinfo;
-      })
-      .catch((err) => {
-        if (err.hasOwnProperty('statusCode') && err.hasOwnProperty('message')) {
-          throwResponseError(err.statusCode, err.message);
-        } else {
-          throwResponseError(500, err);
-        }
-      });
-  } else {
-    throwResponseError(401);
-  }
-}
-
 function insertUserResponse(userinfo, reqinfo) {
   // extract vars we need from the userinfo/reqinfo
   const userid = userinfo.user_id;
@@ -122,7 +77,6 @@ function insertUserResponse(userinfo, reqinfo) {
     return datastore
     .save(userResponseEntity)
     .then( saved => {
-      console.log('Task ${userResponseKey.id} created successfully.');
       return saved;
     })
     .catch(err => {
@@ -299,7 +253,7 @@ function respondWithError(res, error, prefix) {
   if (process.env.NODE_ENV !== 'test') {
     console.error(new Error('Error ' + code + ': ' + respBody));
   }
-  res.status(code).send(respBody);
+  res.status(code).json(respBody);
 }
 
   /*
@@ -325,7 +279,8 @@ exports.tos = (req, res) => {
     cors(req, res, () => {
       const authHeader = requireAuthorizationHeader(req);
       const reqinfo = validateInputs(req);
-      authorize(authHeader)
+      const authorizer = auth.getAuthorizer();
+      authorizer.authorize(authHeader)
         .then( userinfo => {
           if (req.method == 'GET') {
             getUserResponse(userinfo, reqinfo)
