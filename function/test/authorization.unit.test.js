@@ -1,20 +1,45 @@
 const test = require('ava');
 const sinon = require('sinon');
-const Supertest = require('supertest');
-const supertest = Supertest(process.env.BASE_URL);
+const ResponseError = require('../responseError')
 
+const tosapi = require('..').tosapi;
 
-const tos = require('..').tos;
+process.env.NODE_ENV = 'test';
 
-var fakeAuthorizer = {
+// TODO: refactor authorizer so all we need to stub is the http request to google, not the whole authorize method
+const failingAuthorizer = {
     authorize: (authHeader) => {
-        return Promise.reject({code: 9, msg: "Intentional error from authorizer fake"})
-        // return Promise.resolve({user_id: 12321, email: 'fake@fakey.fake'})
+        return Promise.reject(new ResponseError('Intentional error from authorizer fake', 499));
     },
     toString: () => { return 'fakey-faked authorizer' }
 }
 
-process.env.NODE_ENV = 'test';
+const dummyUserInfo = {user_id: 12321, email: 'fake@fakey.fake'};
+
+const successfulAuthorizer = {
+    authorize: (authHeader) => {
+        return Promise.resolve(dummyUserInfo)
+    },
+    toString: () => { return 'fakey-faked authorizer' }
+}
+
+const echoDatastore = {
+    // this echos the userinfo returned by the authorizer.
+    // we use this echo to test that the userinfo object is passed
+    // correctly from the authorizer to the datastore client.
+    insertUserResponse: (userinfo, reqinfo) => {
+        return Promise.resolve(userinfo);
+    },
+    getUserResponse: (userinfo, reqinfo) => {
+        // we need to also include accepted:true so the datastore-related checks will pass.
+        return Promise.resolve({
+            accepted: true,
+            userid: userinfo.user_id,
+            email: userinfo.email
+        });
+    }
+}
+
 
 function stubbedRes() {
     return {
@@ -25,24 +50,7 @@ function stubbedRes() {
     };
 }
 
-/*
-test.before('setup fake server', t => {
-    // This runs before all tests
-    fakeserver = sinon.createFakeServer();
-    // fakeserver.respondWith("GET", "/oauth2/v2/tokeninfo",
-    fakeserver.respondWith(
-            [200, { "Content-Type": "application/json" },
-             '{ "user_id": 54321, "email": "nobody@example.com" }']);
-    fakeserver.respondImmediately = true;
-});
-
-test.after.always('guaranteed cleanup', t => {
-    // This will always run, regardless of earlier failures
-    fakeserver.restore();
-});
-*/
-
-test('authorization: should 400 if authorizer returns an error', t => {
+test('authorization: should return error if authorizer returns an error', async t => {
     const req = {
         path: '/v1/user/response',
         headers: {
@@ -56,31 +64,33 @@ test('authorization: should 400 if authorizer returns an error', t => {
         }
     };
     const res = stubbedRes();
-
-    t.true(true);
-
-    // Call tested function
-    // tos(req, res, fakeAuthorizer);
-
-    // Verify behavior of tested function
-    // t.true(res.json.calledOnce);
-    // t.deepEqual(res.json.firstCall.args, ['"appid must be a String."']);
-    // t.deepEqual(res.status.firstCall.args, [400]);
+    
+	const error = await t.throwsAsync( tosapi(req, res, failingAuthorizer, echoDatastore) );
+    t.is(error.statusCode, 499);
+    t.is(error.name, 'ResponseError');
+    t.is(error.message, 'Error authorizing user: Intentional error from authorizer fake');
 });
 
-/*
-test.cb('authorization: should fail on bad bearer token', (t) => {
-
-    console.log(process.env.BASE_URL);
-
-    supertest
-        .get('/tos/v1/user/response?appid=FireCloud&tosversion=20180815.1')
-        .set('Authorization', 'Bearer 99999')
-        .expect(400)
-        .expect((response) => {
-          t.true(response.text.indexOf('Invalid Value') > -1);
-        })
-        .end(t.end);
+test('authorization: should pass userinfo onwards to datastore', async t => {
+    const req = {
+        path: '/v1/user/response',
+        headers: {
+            origin: 'unittest',
+            authorization: 'fake'
+        },
+        method: 'GET',
+        query: {
+            appid: 'FireCloud',
+            tosversion: 20180815.1
+        }
+    };
+    const res = stubbedRes();
+    
+    return tosapi(req, res, successfulAuthorizer, echoDatastore)
+        .then( datastoreResult => {
+            t.is(datastoreResult.userid, dummyUserInfo.user_id);
+            t.is(datastoreResult.email, dummyUserInfo.email);
+            t.true(datastoreResult.accepted);
+        });
+    
 });
-*/
-

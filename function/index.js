@@ -1,5 +1,6 @@
 const auth = require('./authorization');
 const ds = require('./datastore');
+const ResponseError = require('./responseError')
 
 // handle CORS requests via 'cors' library
 const corsOptions = {
@@ -89,6 +90,21 @@ function validateInputs(req) {
   }
 }
 
+function rejection(error, message) {
+  let t;
+  if (error.name === 'ResponseError') {
+    if (message) {
+      t = new ResponseError(message + ': ' + error.message, error.statusCode, error.error);
+    } else {
+      t = error;
+    }
+  } else {
+    t = new ResponseError(message, statusCode, error);
+  }
+
+  return Promise.reject(t);
+}
+
 function throwResponseError(statusCode, message) {
   const msg = JSON.stringify(message || statusCode);
   throw {
@@ -109,61 +125,62 @@ function respondWithError(res, error, prefix) {
   res.status(code).json(respBody);
 }
 
-  /*
-    TODO:
-    - disable CORS and pass through from orch?
-    - move supporting functions to separate file(s)
-    - unit tests / shims
-    - if POST request:
-      - verify Application and TermsOfService ancestors exist before inserting (what do if they don't?)
-  */
+  /**
+   * Implementation of the TOS APIs. This tosapi() function should always either:
+   *  - throw an error
+   *  - return a resolved Promise containing the retrieved or inserted datastore values
+   *  - return a rejected Promise containing a relevant error
+   * 
+   * As compared to the tos(req, res) function below this - which is the entry point for
+   * the Cloud Function - this tosapi() function should be unit-testable.
+   * 
+   * @param {*} req The user's request object
+   * @param {*} res The user's response object. This is needed by the cors third-party library
+   * @param {*} authClient The authorizer class used to auth the user. This exists as an argument
+   *  so tests can override it.
+   * @param {*} datastoreClient The datastore client class used to read/write persistent data.
+   *  This exists as an argument so tests can override it. 
+   */
+function tosapi(req, res, authClient, datastoreClient) {
+  // unit tests may override these. At runtime, when called as a live Cloud Function from tos(),
+  // authClient and datastoreClient will be null.
+  const authorizer = authClient || auth.getAuthorizer();
+  const datastore = datastoreClient || ds.getDatastoreClient();
 
-exports.tos = (req, res, authClient, datastoreClient) => {
-  try {
-    // unit tests may override these. At runtime, when called as a live Cloud Function from tos(),
-    // authClient and datastoreClient will be null.
-    const authorizer = authClient || auth.getAuthorizer();
-    const datastore = datastoreClient || ds.getDatastoreClient();
+  validateRequestUrl(req);
+  validateRequestMethod(req);
+  validateContentType(req);
+  const authHeader = requireAuthorizationHeader(req);
+  const reqinfo = validateInputs(req);
 
-    validateRequestUrl(req);
-    validateRequestMethod(req);
-    validateContentType(req);
-    cors(req, res, () => {
-      const authHeader = requireAuthorizationHeader(req);
-      const reqinfo = validateInputs(req);
-
-      console.log('using authorizer: ' + authorizer.toString());
-      authorizer.authorize(authHeader)
-        .then( userinfo => {
-          if (req.method == 'GET') {
-            datastore.getUserResponse(userinfo, reqinfo)
-              .then( userResponse => {
-                res.status(200).json(userResponse);
-              })
-              .catch( err => {
-                respondWithError(res, err, 'Error querying for user response: ');
-              });
-          } else if (req.method == 'POST') {
-            datastore.insertUserResponse(userinfo, reqinfo)
-              .then( userResponse => {
-                res.status(200).json(userResponse);
-              })
-              .catch( err => {
-                respondWithError(res, err, 'Error writing user response: ');
-              });
-          } else {
-            // this should never happen, given the validateRequestMethod call above
-            res.status(405).send();
-          }
-        })
-        .catch( err => {
-          respondWithError(res, err, 'Error authorizing user: ');
-        });
-      });
-  } catch (err) {
-    respondWithError(res, err);
-  }
-};
+  return authorizer.authorize(authHeader)
+    .then( userinfo => {
+      if (req.method == 'GET') {
+        return datastore.getUserResponse(userinfo, reqinfo)
+          .then( userResponse => {
+            // success case
+            return userResponse;
+          })
+          .catch( err => {
+            return rejection(err, 'Error reading user response');
+          });
+      } else if (req.method == 'POST') {
+        return datastore.insertUserResponse(userinfo, reqinfo)
+          .then( userResponse => {
+            // success case
+            return userResponse;
+          })
+          .catch( err => {
+            return rejection(err, 'Error writing user response');
+          });
+      } else {
+        return Promise.reject({statusCode: 405});
+      }
+    })
+    .catch( err => {
+      return rejection(err, 'Error authorizing user');
+    });
+}
 
 /**
  * Main entry point for the Cloud Function.
@@ -173,16 +190,21 @@ exports.tos = (req, res, authClient, datastoreClient) => {
  * and make its implementation - tosapi() - the testable one.
  * 
  */
-exports.tosshell = (req, res) => {
+function tos(req, res) {
   try {
-    tosapi(req)
-      .then( (tosresult) => {
-        res.status(200).json(tosresult);
-      })
-      .catch( (err) => {
-        respondWithError(res, err);
-      })
+    cors(req, res, () => {
+      tosapi(req, res, null, null)
+        .then( (tosresult) => {
+          res.status(200).json(tosresult);
+        })
+        .catch( (err) => {
+          respondWithError(res, err);
+        })
+    });
   } catch (err) {
     respondWithError(res, err);
   }
 }
+
+exports.tosapi = tosapi;
+exports.tos = tos;

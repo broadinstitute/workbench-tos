@@ -45,7 +45,7 @@ class GoogleOAuthAuthorizer extends Authorizer {
                     return userinfo;
                 })
                 .catch((err) => {
-                    const statusCode = err.statusCode || 500;
+                    const statusCode = err.statusCode || 400;
                     const message = err.message || JSON.stringify(err);
                     return Promise.reject({statusCode: statusCode, message: message});
                 });
