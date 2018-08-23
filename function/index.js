@@ -92,13 +92,16 @@ function validateInputs(req) {
 
 function rejection(error, message) {
   let t;
+  // if the error object is already a ResponseError, reuse it.
   if (error.name === 'ResponseError') {
+    // if we have a new message, prepend the new message to the existing one
     if (message) {
       t = new ResponseError(message + ': ' + error.message, error.statusCode, error.error);
     } else {
       t = error;
     }
   } else {
+    const statusCode = error.statusCode || 500;
     t = new ResponseError(message, statusCode, error);
   }
 
