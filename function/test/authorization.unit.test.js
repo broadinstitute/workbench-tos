@@ -1,26 +1,32 @@
 const test = require('ava');
 const sinon = require('sinon');
-const ResponseError = require('../responseError')
+const requestPromiseErrors = require('request-promise-native/errors');
+const GoogleOAuthAuthorizer = require('../authorization').GoogleOAuthAuthorizer
 
 const tosapi = require('..').tosapi;
 
 process.env.NODE_ENV = 'test';
 
-// TODO: refactor authorizer so all we need to stub is the http request to google, not the whole authorize method
-const failingAuthorizer = {
-    authorize: (authHeader) => {
-        return Promise.reject(new ResponseError('Intentional error from authorizer fake', 499));
-    },
-    toString: () => { return 'fakey-faked authorizer' }
+class FailingMockAuthorizer extends GoogleOAuthAuthorizer {
+    callTokenInfoApi(token) {
+        // this is the error structure returned by request-promise-native/Google:
+        const invalidTokenError = new requestPromiseErrors.StatusCodeError(
+            400,
+            {error_description: 'Invalid Value'},
+            {}, // copy of the options used for the request; irrelevant for this test
+            {} // full response for the request; irrelevant for this test
+        );
+              return Promise.reject(invalidTokenError);
+    }
 }
 
 const dummyUserInfo = {user_id: 12321, email: 'fake@fakey.fake'};
 
-const successfulAuthorizer = {
-    authorize: (authHeader) => {
-        return Promise.resolve(dummyUserInfo)
-    },
-    toString: () => { return 'fakey-faked authorizer' }
+class SuccessfulMockAuthorizer extends GoogleOAuthAuthorizer {
+    callTokenInfoApi(token) {
+        console.log('SuccessfulMockAuthorizer.callTokenInfoApi()');
+        return Promise.resolve(dummyUserInfo);
+    }
 }
 
 const echoDatastore = {
@@ -39,7 +45,6 @@ const echoDatastore = {
         });
     }
 }
-
 
 function stubbedRes() {
     return {
@@ -65,10 +70,10 @@ test('authorization: should return error if authorizer returns an error', async 
     };
     const res = stubbedRes();
     
-	const error = await t.throwsAsync( tosapi(req, res, failingAuthorizer, echoDatastore) );
-    t.is(error.statusCode, 499);
+	const error = await t.throwsAsync( tosapi(req, res, new FailingMockAuthorizer(), echoDatastore) );
+    t.is(error.statusCode, 400);
     t.is(error.name, 'ResponseError');
-    t.is(error.message, 'Error authorizing user: Intentional error from authorizer fake');
+    t.is(error.message, 'Error authorizing user: Invalid Value');
 });
 
 test('authorization: should pass userinfo onwards to datastore', async t => {
@@ -86,7 +91,7 @@ test('authorization: should pass userinfo onwards to datastore', async t => {
     };
     const res = stubbedRes();
     
-    return tosapi(req, res, successfulAuthorizer, echoDatastore)
+    return tosapi(req, res, new SuccessfulMockAuthorizer(), echoDatastore)
         .then( datastoreResult => {
             t.is(datastoreResult.userid, dummyUserInfo.user_id);
             t.is(datastoreResult.email, dummyUserInfo.email);

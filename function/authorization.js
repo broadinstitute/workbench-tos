@@ -18,6 +18,19 @@ class GoogleOAuthAuthorizer extends Authorizer {
         return 'https://www.googleapis.com/oauth2/v2/tokeninfo?access_token=' + token;
     }
 
+    callTokenInfoApi(token) {
+        const reqUrl = this.tokenInfoUrl(token);
+        const reqOptions = {
+            method: 'POST',
+            uri: reqUrl,
+            auth: {
+            bearer: token
+            },
+            json: true
+        };
+        return persistentRequest.post(reqOptions)
+    }
+
     /**
      * Extracts an Authorization header from the request, then queries
      * Google for token information using that auth header.
@@ -30,23 +43,15 @@ class GoogleOAuthAuthorizer extends Authorizer {
     authorize(authHeader) {
         if (authHeader) {
             const token = authHeader.replace('Bearer ','');
-            const reqUrl = this.tokenInfoUrl(token);
-            const reqOptions = {
-                method: 'POST',
-                uri: reqUrl,
-                auth: {
-                bearer: token
-                },
-                json: true
-            };
-            return persistentRequest.post(reqOptions)
+            return this.callTokenInfoApi(token)
                 .then((userinfo) => {
                     // TODO: validate audience and/or whitelisted email suffixes
                     return userinfo;
                 })
                 .catch((err) => {
                     const statusCode = err.statusCode || 400;
-                    const message = err.message || JSON.stringify(err);
+                    const requestError = err.error || {};
+                    const message = requestError.error_description || err.message || JSON.stringify(err);
                     return Promise.reject({statusCode: statusCode, message: message});
                 });
         } else {
@@ -60,3 +65,4 @@ function getAuthorizer() {
 }
 
 module.exports.getAuthorizer = getAuthorizer;
+module.exports.GoogleOAuthAuthorizer = GoogleOAuthAuthorizer;
