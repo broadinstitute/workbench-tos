@@ -142,10 +142,11 @@ class GoogleDatastoreClient {
                     } else {
                         return rejection(403, 'user declined TOS');
                     }
-                } else if (hits.length > 1) {
-                    return rejection(500, 'unexpected: returned too many results');
-                } else {
+                } else if (hits.length == 0) {
                     return rejection(404);
+                } else {
+                    // defensive! This should never happen since we set limit(1) above.
+                    return rejection(500, 'unexpected: returned too many results');
                 }
             })
             .catch(err => {

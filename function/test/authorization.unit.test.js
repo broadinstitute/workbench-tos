@@ -24,8 +24,18 @@ const dummyUserInfo = {user_id: 12321, email: 'fake@fakey.fake'};
 
 class SuccessfulMockAuthorizer extends GoogleOAuthAuthorizer {
     callTokenInfoApi(token) {
-        console.log('SuccessfulMockAuthorizer.callTokenInfoApi()');
         return Promise.resolve(dummyUserInfo);
+    }
+}
+
+class TokenValueTestingAuthorizer extends GoogleOAuthAuthorizer {
+    // if value of token is 'expected-token', succeed; otherwise fail
+    callTokenInfoApi(token) {
+        if (token === 'expected-token') {
+            return Promise.resolve(dummyUserInfo);
+        } else {
+            return Promise.reject(new Error('Expected the token value to be [expected-token] but got [' + token + ']'));
+        }
     }
 }
 
@@ -98,4 +108,50 @@ test('authorization: should pass userinfo onwards to datastore', async t => {
             t.true(datastoreResult.accepted);
         });
     
+});
+
+test('authorization: should replace "Bearer " in the Authorization header', async t => {
+    const req = {
+        path: '/v1/user/response',
+        headers: {
+            origin: 'unittest',
+            authorization: 'Bearer expected-token'
+        },
+        method: 'GET',
+        query: {
+            appid: 'FireCloud',
+            tosversion: 20180815.1
+        }
+    };
+    const res = stubbedRes();
+
+    return tosapi(req, res, new TokenValueTestingAuthorizer(), echoDatastore)
+        .then( datastoreResult => {
+            t.is(datastoreResult.userid, dummyUserInfo.user_id);
+            t.is(datastoreResult.email, dummyUserInfo.email);
+            t.true(datastoreResult.accepted);
+        });
+});
+
+test('authorization: should replace "bEArEr " in the Authorization header', async t => {
+    const req = {
+        path: '/v1/user/response',
+        headers: {
+            origin: 'unittest',
+            authorization: 'bEArEr expected-token'
+        },
+        method: 'GET',
+        query: {
+            appid: 'FireCloud',
+            tosversion: 20180815.1
+        }
+    };
+    const res = stubbedRes();
+
+    return tosapi(req, res, new TokenValueTestingAuthorizer(), echoDatastore)
+        .then( datastoreResult => {
+            t.is(datastoreResult.userid, dummyUserInfo.user_id);
+            t.is(datastoreResult.email, dummyUserInfo.email);
+            t.true(datastoreResult.accepted);
+        });
 });

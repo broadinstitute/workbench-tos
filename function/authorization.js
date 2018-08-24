@@ -4,6 +4,9 @@ const persistentRequest = requestPromise.defaults({
   forever: true
 });
 
+// for replacing the "Bearer " prefix case-insensitively in header values
+const bearerPrefix = new RegExp('bearer ', 'ig');
+
 class Authorizer {
     authorize() {
         throw new Error('subclasses must implement');
@@ -42,7 +45,7 @@ class GoogleOAuthAuthorizer extends Authorizer {
      */
     authorize(authHeader) {
         if (authHeader) {
-            const token = authHeader.replace('Bearer ','');
+            const token = authHeader.replace(bearerPrefix,'');
             return this.callTokenInfoApi(token)
                 .then((userinfo) => {
                     // TODO: validate audience and/or whitelisted email suffixes
