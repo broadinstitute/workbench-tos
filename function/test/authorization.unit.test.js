@@ -16,7 +16,7 @@ class FailingMockAuthorizer extends GoogleOAuthAuthorizer {
             {}, // copy of the options used for the request; irrelevant for this test
             {} // full response for the request; irrelevant for this test
         );
-              return Promise.reject(invalidTokenError);
+        return Promise.reject(invalidTokenError);
     }
 }
 
@@ -34,7 +34,13 @@ class TokenValueTestingAuthorizer extends GoogleOAuthAuthorizer {
         if (token === 'expected-token') {
             return Promise.resolve(dummyUserInfo);
         } else {
-            return Promise.reject(new Error('Expected the token value to be [expected-token] but got [' + token + ']'));
+            const invalidTokenError = new requestPromiseErrors.StatusCodeError(
+                400,
+                {error_description: 'Unit test-thrown error! Expected the token value to be [expected-token] but got [' + token + ']'},
+                {}, // copy of the options used for the request; irrelevant for this test
+                {} // full response for the request; irrelevant for this test
+            );
+            return Promise.reject(invalidTokenError);
         }
     }
 }
@@ -154,4 +160,25 @@ test('authorization: should replace "bEArEr " in the Authorization header', asyn
             t.is(datastoreResult.email, dummyUserInfo.email);
             t.true(datastoreResult.accepted);
         });
+});
+
+test('authorization: should not replace "Bear er " in the Authorization header', async t => {
+    const req = {
+        path: '/v1/user/response',
+        headers: {
+            origin: 'unittest',
+            authorization: 'Bear er expected-token'
+        },
+        method: 'GET',
+        query: {
+            appid: 'FireCloud',
+            tosversion: 20180815.1
+        }
+    };
+    const res = stubbedRes();
+
+    const error = await t.throwsAsync( tosapi(req, res, new TokenValueTestingAuthorizer(), echoDatastore) );
+    t.is(error.statusCode, 400);
+    t.is(error.name, 'ResponseError');
+    t.is(error.message, 'Error authorizing user: Unit test-thrown error! Expected the token value to be [expected-token] but got [Bear er expected-token]');
 });
