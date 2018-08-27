@@ -92,11 +92,9 @@ function validateInputs(req) {
 
 function rejection(error, message) {
   const originalMessage = error.message || JSON.stringify(error);
-  let newMessage;
+  let newMessage = originalMessage;
   if (message) {
-    newMessage = message + ': ' + originalMessage;
-  } else {
-    newMessage = originalMessage;
+    newMessage = `${message}: ${originalMessage}`;
   }
   let t;
   // if the error object is already a ResponseError, reuse it; else, wrap it

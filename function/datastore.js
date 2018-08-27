@@ -2,9 +2,7 @@
 const projectId = process.env.GCP_PROJECT;
 // Create datastore client
 const Datastore = require('@google-cloud/datastore');
-const datastore = new Datastore({
-    projectId: projectId,
-});
+const datastore = new Datastore({ projectId});
 
 // Datastore namespace and kinds
 const appNamespace = 'app';
@@ -12,35 +10,35 @@ const kindApplication = 'Application';
 const kindTos = 'TermsOfService';
 const kindUserResponse = 'TOSResponse';
 
-function generateKey(keyparts) {
+const generateKey = function(keyparts) {
     return datastore.key({
         namespace: appNamespace,
         path: keyparts
     });
 }
 
-function generateTosKey(appId, tosVersion) {
+const generateTosKey = function(appId, tosVersion) {
     return generateKey(tosKeyArrayParts(appId, tosVersion));
 }
 
-function rejection(error, message) {
+const rejection = function(error, message) {
     return Promise.reject(new Error({
       error: error,
       message: message
     }));
   }
 
-function tosKeyArrayParts (appId, tosVersion) {
+const tosKeyArrayParts = function(appId, tosVersion) {
     return [kindApplication, appId, kindTos, tosVersion.toString()];
 }
 
-function generateUserResponseKey(appId, tosVersion) {
+const generateUserResponseKey = function(appId, tosVersion) {
     let userResponseParts = tosKeyArrayParts(appId, tosVersion);
     userResponseParts.push(kindUserResponse);
     return generateKey(userResponseParts);
 }
 
-function getTOS(appid, tosversion) {
+const getTOS = function(appid, tosversion) {
     const query = datastore
         .createQuery(appNamespace, kindTos)
         .filter('__key__', generateTosKey(appid, tosversion));
@@ -65,6 +63,7 @@ function getTOS(appid, tosversion) {
         });
 }
 
+// define datastore clients as classes for ease of unit testing - unit tests can mock out parts of these classes.
 class GoogleDatastoreClient {
 
     insertUserResponse(userinfo, reqinfo) {
@@ -120,9 +119,8 @@ class GoogleDatastoreClient {
 
     getUserResponse(userinfo, reqinfo) {
 
-        const userid = userinfo.user_id;
-        const tosversion = reqinfo.tosversion;
-        const appid = reqinfo.appid;
+        const { user_id: userid } = userinfo;
+        const { tosversion, appid } = reqinfo;
 
         const query = datastore
             .createQuery(appNamespace, kindUserResponse)
@@ -136,7 +134,7 @@ class GoogleDatastoreClient {
             .then(results => {
                 // results object is an array that contains [0]: array of rows returned; [1]: metadata about the results
                 const hits = results[0];
-                if (hits.length == 1) {
+                if (hits.length === 1) {
                     if (hits[0].accepted) {
                         return hits[0];
                     } else {
@@ -160,8 +158,8 @@ class GoogleDatastoreClient {
 
 }
 
-function getDatastoreClient() {
+const getDatastoreClient = function() {
     return new GoogleDatastoreClient();
 }
 
-module.exports.getDatastoreClient = getDatastoreClient;
+module.exports = { getDatastoreClient };

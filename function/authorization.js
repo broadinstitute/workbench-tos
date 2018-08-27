@@ -7,6 +7,7 @@ const persistentRequest = requestPromise.defaults({
 // for replacing the "Bearer " prefix case-insensitively in header values
 const bearerPrefix = /^bearer /i;
 
+// define Authorizers as classes for ease of unit testing - unit tests can mock out parts of these classes.
 class Authorizer {
     authorize() {
         throw new Error('subclasses must implement');
@@ -16,13 +17,8 @@ class Authorizer {
 class GoogleOAuthAuthorizer extends Authorizer {
     // TODO: move validation of Authorization request header into this class
 
-    // Google REST API for tokeninfo
-    tokenInfoUrl(token) {
-        return 'https://www.googleapis.com/oauth2/v2/tokeninfo?access_token=' + token;
-    }
-
     callTokenInfoApi(token) {
-        const reqUrl = this.tokenInfoUrl(token);
+        const reqUrl = 'https://www.googleapis.com/oauth2/v2/tokeninfo?access_token=' + token;
         const reqOptions = {
             method: 'POST',
             uri: reqUrl,
@@ -63,7 +59,7 @@ class GoogleOAuthAuthorizer extends Authorizer {
     }
 }
 
-function getAuthorizer() {
+const getAuthorizer = function() {
     return new GoogleOAuthAuthorizer();
 }
 
