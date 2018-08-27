@@ -9,6 +9,7 @@ function stubbedRes() {
     return {
         setHeader: sinon.stub(),
         send: sinon.stub(),
+        json: sinon.stub(),
         status: sinon.stub().returnsThis()
     };
 }
@@ -28,7 +29,7 @@ test('tos: should 404 on incorrect url path', t => {
     tos(req, res);
 
     // Verify behavior of tested function
-    t.true(res.send.calledOnce);
+    t.true(res.json.calledOnce);
     t.true(res.status.calledOnce);
     t.deepEqual(res.status.firstCall.args, [404]);
 });
@@ -48,7 +49,7 @@ test('tos: should 401 on correct path but without Authorization header', t => {
     tos(req, res);
 
     // Verify behavior of tested function
-    t.true(res.send.calledOnce);
+    t.true(res.json.calledOnce);
     t.true(res.status.calledOnce);
     t.deepEqual(res.status.firstCall.args, [401]);
 });
@@ -69,9 +70,9 @@ test('tos: should 400 on GET correct path and Authorization header but without q
     tos(req, res);
 
     // Verify behavior of tested function
-    t.true(res.send.calledOnce);
+    t.true(res.json.calledOnce);
     t.deepEqual(res.status.firstCall.args, [400]);
-    t.deepEqual(res.send.firstCall.args, ['"appid must be a String. tosversion must be a Number."']);
+    t.deepEqual(res.json.firstCall.args, ['"appid must be a String. tosversion must be a Number."']);
 });
 
 test('tos: should 400 on GET correct path and Authorization header but missing tosversion from query params', t => {
@@ -92,9 +93,9 @@ test('tos: should 400 on GET correct path and Authorization header but missing t
     tos(req, res);
 
     // Verify behavior of tested function
-    t.true(res.send.calledOnce);
+    t.true(res.json.calledOnce);
     t.deepEqual(res.status.firstCall.args, [400]);
-    t.deepEqual(res.send.firstCall.args, ['"tosversion must be a Number."']);
+    t.deepEqual(res.json.firstCall.args, ['"tosversion must be a Number."']);
 });
 
 test('tos: should 400 on GET correct path and Authorization header, but tosversion is non-numeric in query params', t => {
@@ -116,9 +117,9 @@ test('tos: should 400 on GET correct path and Authorization header, but tosversi
     tos(req, res);
 
     // Verify behavior of tested function
-    t.true(res.send.calledOnce);
+    t.true(res.json.calledOnce);
     t.deepEqual(res.status.firstCall.args, [400]);
-    t.deepEqual(res.send.firstCall.args, ['"tosversion must be a Number."']);
+    t.deepEqual(res.json.firstCall.args, ['"tosversion must be a Number."']);
 });
 
 test('tos: should 400 on GET correct path and Authorization header but missing appid from query params', t => {
@@ -139,9 +140,9 @@ test('tos: should 400 on GET correct path and Authorization header but missing a
     tos(req, res);
 
     // Verify behavior of tested function
-    t.true(res.send.calledOnce);
+    t.true(res.json.calledOnce);
     t.deepEqual(res.status.firstCall.args, [400]);
-    t.deepEqual(res.send.firstCall.args, ['"appid must be a String."']);
+    t.deepEqual(res.json.firstCall.args, ['"appid must be a String."']);
 });
 
 const invalidMethods = ['PUT','DELETE','HEAD','PATCH','TRACE','CONNECT'];
@@ -165,7 +166,7 @@ invalidMethods.forEach( method => {
         tos(req, res);
     
         // Verify behavior of tested function
-        t.true(res.send.calledOnce);
+        t.true(res.json.calledOnce);
         t.deepEqual(res.status.firstCall.args, [405]);
     });
 });
@@ -185,7 +186,7 @@ test('tos: should 415 on POST without a content-type', t => {
     tos(req, res);
 
     // Verify behavior of tested function
-    t.true(res.send.calledOnce);
+    t.true(res.json.calledOnce);
     t.deepEqual(res.status.firstCall.args, [415]);
 });
 
@@ -205,7 +206,7 @@ test('tos: should 415 on POST with the wrong content-type', t => {
     tos(req, res);
 
     // Verify behavior of tested function
-    t.true(res.send.calledOnce);
+    t.true(res.json.calledOnce);
     t.deepEqual(res.status.firstCall.args, [415]);
 });
 
@@ -225,9 +226,9 @@ test('tos: should 400 on POST with the right content-type but no body', t => {
     tos(req, res);
 
     // Verify behavior of tested function
-    t.true(res.send.calledOnce);
+    t.true(res.json.calledOnce);
     t.deepEqual(res.status.firstCall.args, [400]);
-    t.deepEqual(res.send.firstCall.args, ['"Request body must be valid JSON."']);
+    t.deepEqual(res.json.firstCall.args, ['"Request body must be valid JSON."']);
 });
 
 test('tos: should 400 on POST with the right content-type but empty body', t => {
@@ -247,9 +248,9 @@ test('tos: should 400 on POST with the right content-type but empty body', t => 
     tos(req, res);
 
     // Verify behavior of tested function
-    t.true(res.send.calledOnce);
+    t.true(res.json.calledOnce);
     t.deepEqual(res.status.firstCall.args, [400]);
-    t.deepEqual(res.send.firstCall.args, ['"accepted must be a Boolean. appid must be a String. tosversion must be a Number."']);
+    t.deepEqual(res.json.firstCall.args, ['"accepted must be a Boolean. appid must be a String. tosversion must be a Number."']);
 });
 
 test('tos: should 400 on POST when missing accepted from body', t => {
@@ -272,9 +273,9 @@ test('tos: should 400 on POST when missing accepted from body', t => {
     tos(req, res);
 
     // Verify behavior of tested function
-    t.true(res.send.calledOnce);
+    t.true(res.json.calledOnce);
     t.deepEqual(res.status.firstCall.args, [400]);
-    t.deepEqual(res.send.firstCall.args, ['"accepted must be a Boolean."']);
+    t.deepEqual(res.json.firstCall.args, ['"accepted must be a Boolean."']);
 });
 
 test('tos: should 400 on POST when accepted is non-Boolean in body', t => {
@@ -298,9 +299,9 @@ test('tos: should 400 on POST when accepted is non-Boolean in body', t => {
     tos(req, res);
 
     // Verify behavior of tested function
-    t.true(res.send.calledOnce);
+    t.true(res.json.calledOnce);
     t.deepEqual(res.status.firstCall.args, [400]);
-    t.deepEqual(res.send.firstCall.args, ['"accepted must be a Boolean."']);
+    t.deepEqual(res.json.firstCall.args, ['"accepted must be a Boolean."']);
 });
 
 test('tos: should 400 on POST when missing appid from body', t => {
@@ -323,9 +324,9 @@ test('tos: should 400 on POST when missing appid from body', t => {
     tos(req, res);
 
     // Verify behavior of tested function
-    t.true(res.send.calledOnce);
+    t.true(res.json.calledOnce);
     t.deepEqual(res.status.firstCall.args, [400]);
-    t.deepEqual(res.send.firstCall.args, ['"appid must be a String."']);
+    t.deepEqual(res.json.firstCall.args, ['"appid must be a String."']);
 });
 
 test('tos: should 400 on POST when missing tosversion from body', t => {
@@ -348,9 +349,9 @@ test('tos: should 400 on POST when missing tosversion from body', t => {
     tos(req, res);
 
     // Verify behavior of tested function
-    t.true(res.send.calledOnce);
+    t.true(res.json.calledOnce);
     t.deepEqual(res.status.firstCall.args, [400]);
-    t.deepEqual(res.send.firstCall.args, ['"tosversion must be a Number."']);
+    t.deepEqual(res.json.firstCall.args, ['"tosversion must be a Number."']);
 });
 
 test('tos: should 400 on POST when tosversion is non-numeric in body', t => {
@@ -374,7 +375,7 @@ test('tos: should 400 on POST when tosversion is non-numeric in body', t => {
     tos(req, res);
 
     // Verify behavior of tested function
-    t.true(res.send.calledOnce);
+    t.true(res.json.calledOnce);
     t.deepEqual(res.status.firstCall.args, [400]);
-    t.deepEqual(res.send.firstCall.args, ['"tosversion must be a Number."']);
+    t.deepEqual(res.json.firstCall.args, ['"tosversion must be a Number."']);
 });

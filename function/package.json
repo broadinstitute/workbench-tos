@@ -14,10 +14,10 @@
     "test": "export FUNCTIONS_CMD='functions-emulator' && sh test/updateFunction.sh && export BASE_URL=\"http://localhost:8010/$GCP_PROJECT/$GCF_REGION\" && ava -T 20s --verbose -c 1 test/index.test.js test/*unit*test.js test/*integration*test.js"
   },
   "devDependencies": {
-    "ava": "0.25.0",
-    "sinon": "4.4.8",
+    "ava": "1.0.0-beta.7",
     "eslint": "^5.4.0",
-    "eslint-config-strongloop": "^2.1.0"
+    "eslint-config-strongloop": "^2.1.0",
+    "sinon": "6.1.5"
   },
   "dependencies": {
     "@google-cloud/datastore": "^1.4.1",

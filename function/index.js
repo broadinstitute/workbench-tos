@@ -1,11 +1,6 @@
-// Create persistent/pipelined http client for outbound requests
-const requestPromise = require('request-promise-native');
-const persistentRequest = requestPromise.defaults({
-  forever: true
-});
-
-// Google REST API for tokeninfo
-const tokenInfoUrl = 'https://www.googleapis.com/oauth2/v2/tokeninfo';
+const auth = require('./authorization');
+const ds = require('./datastore');
+const ResponseError = require('./responseError')
 
 // handle CORS requests via 'cors' library
 const corsOptions = {
@@ -13,193 +8,6 @@ const corsOptions = {
   allowedHeaders: ['Authorization','Content-Type','Accept','Origin','X-App-ID']
 }
 const cors = require('cors')(corsOptions);
-
-// Read the project ID from environment
-const projectId = process.env.GCP_PROJECT;
-// Create datastore client
-const Datastore = require('@google-cloud/datastore');
-const datastore = new Datastore({
-  projectId: projectId,
-});
-
-// Datastore namespace and kinds
-const appNamespace = 'app';
-const kindApplication = 'Application';
-const kindTos = 'TermsOfService';
-const kindUserResponse = 'TOSResponse';
-
-function tosKeyArrayParts(appId, tosVersion) {
-  return [kindApplication, appId, kindTos, tosVersion.toString()];
-}
-
-function generateKey(keyparts) {
-  return datastore.key({
-    namespace: appNamespace,
-    path: keyparts
-  });
-}
-
-function generateTosKey(appId, tosVersion) {
-  return generateKey(tosKeyArrayParts(appId, tosVersion));
-}
-
-function generateUserResponseKey(appId, tosVersion) {
-  let userResponseParts = tosKeyArrayParts(appId, tosVersion);
-  userResponseParts.push(kindUserResponse);
-  return generateKey(userResponseParts);
-}
-
-/**
- * Extracts an Authorization header from the request, then queries
- * Google for token information using that auth header.
- * 
- * Returns a Promise that contains Google's tokeninfo response,
- * or rejects with an http status code and error.
- *  
- * @param {*} req the original request
- */
-function authorize(authHeader) {
-  if (authHeader) {
-    const token = authHeader.replace('Bearer ','');
-    const reqUrl = tokenInfoUrl + '?access_token=' + token;
-    const reqOptions = {
-      method: 'GET',
-      uri: reqUrl,
-      auth: {
-        bearer: token
-      },
-      json: true
-    };
-    return persistentRequest(reqOptions)
-      .then((userinfo) => {
-        // TODO: validate audience and/or whitelisted email suffixes
-        return userinfo;
-      })
-      .catch((err) => {
-        if (err.hasOwnProperty('statusCode') && err.hasOwnProperty('message')) {
-          throwResponseError(err.statusCode, err.message);
-        } else {
-          throwResponseError(500, err);
-        }
-      });
-  } else {
-    throwResponseError(401);
-  }
-}
-
-function insertUserResponse(userinfo, reqinfo) {
-  // extract vars we need from the userinfo/reqinfo
-  const userid = userinfo.user_id;
-  const email = userinfo.email;
-  const appid = reqinfo.appid;
-  const tosversion = reqinfo.tosversion;
-  const accepted = reqinfo.accepted;
-
-  const userResponseEntity = {
-    key: generateUserResponseKey(appid, tosversion),
-    data: [
-      {
-        name: 'userid',
-        value: userid
-      },
-      {
-        name: 'email',
-        value: email
-      },
-      {
-        name: 'timestamp',
-        value: new Date().toJSON()
-      },
-      {
-        name: 'accepted',
-        value: accepted
-      },
-    ]
-  };
-
-  // verify Application and TermsOfService ancestors exist before inserting
-  return getTOS(appid, tosversion).then( () => {
-    return datastore
-    .save(userResponseEntity)
-    .then( saved => {
-      console.log('Task ${userResponseKey.id} created successfully.');
-      return saved;
-    })
-    .catch(err => {
-      throwResponseError(500, err);
-    });
-  })
-  .catch(err => {
-    if (err.statusCode) {
-      throwResponseError(err.statusCode, err);
-    } else {
-      throwResponseError(500, err);
-    }
-  });
-}
-
-function getTOS(appid, tosversion) {
-  const query = datastore
-  .createQuery(appNamespace, kindTos)
-  .filter('__key__', generateTosKey(appid, tosversion));
-
-  return datastore
-    .runQuery(query)
-    .then( results => {
-      // results object is an array that contains [0]: array of rows returned; [1]: metadata about the results
-      const hits = results[0];
-      if (hits.length == 1) {
-        return Promise.resolve(hits[0]);
-      } else {
-        throwResponseError(400, 'TermsOfService ' + appid + '/' + tosversion + ' does not exist.');
-      }
-    })
-    .catch(err => {
-      if (err.statusCode) {
-        throwResponseError(err.statusCode, err);
-      } else {
-        throwResponseError(500, err);
-      }
-    });
-}
-
-function getUserResponse(userinfo, reqinfo) {  
-  const userid = userinfo.user_id;
-  const tosversion = reqinfo.tosversion;
-  const appid = reqinfo.appid;
-
-  const query = datastore
-    .createQuery(appNamespace, kindUserResponse)
-    .hasAncestor(generateTosKey(appid, tosversion))
-    .filter('userid', userid.toString())
-    .order('timestamp', {descending: true})
-    .limit(1);
-  
-  return datastore
-    .runQuery(query)
-    .then(results => {
-      // results object is an array that contains [0]: array of rows returned; [1]: metadata about the results
-      const hits = results[0];
-      if (hits.length == 1) {
-        if (hits[0].accepted) {
-          return Promise.resolve(hits[0]);
-        } else {
-          throwResponseError(403,'user declined TOS');
-        }
-      } else if (hits.length > 1) {
-        throwResponseError(500,'unexpected: returned too many results');
-      } else {
-        throwResponseError(404);
-      }
-    })
-    .catch(err => {
-      if (err.statusCode) {
-        throwResponseError(err.statusCode, err);
-      } else {
-        throwResponseError(500, err);
-      }
-    });
-}
 
 function validateRequestUrl(req) {
   if (req.path != '/v1/user/response' && req.path != '/user/response') {
@@ -282,6 +90,23 @@ function validateInputs(req) {
   }
 }
 
+function rejection(error, message) {
+  const originalMessage = error.message || JSON.stringify(error);
+  let newMessage = originalMessage;
+  if (message) {
+    newMessage = `${message}: ${originalMessage}`;
+  }
+  let t;
+  // if the error object is already a ResponseError, reuse it; else, wrap it
+  if (error.name === 'ResponseError') {
+    t = new ResponseError(newMessage, error.statusCode, error.error);
+  } else {
+    const statusCode = error.statusCode || 500;
+    t = new ResponseError(newMessage, statusCode, error);
+  }
+  return Promise.reject(t);
+}
+
 function throwResponseError(statusCode, message) {
   const msg = JSON.stringify(message || statusCode);
   throw {
@@ -299,60 +124,89 @@ function respondWithError(res, error, prefix) {
   if (process.env.NODE_ENV !== 'test') {
     console.error(new Error('Error ' + code + ': ' + respBody));
   }
-  res.status(code).send(respBody);
+  res.status(code).json(respBody);
 }
 
-  /*
-    TODO:
-    - disable CORS and pass through from orch?
-    - move supporting functions to separate file(s)
-    - unit tests / shims
-    - if POST request:
-      - verify Application and TermsOfService ancestors exist before inserting (what do if they don't?)
-  */
+  /**
+   * Implementation of the TOS APIs. This tosapi() function should always either:
+   *  - throw an error
+   *  - return a resolved Promise containing the retrieved or inserted datastore values
+   *  - return a rejected Promise containing a relevant error
+   * 
+   * As compared to the tos(req, res) function below this - which is the entry point for
+   * the Cloud Function - this tosapi() function should be unit-testable.
+   * 
+   * @param {*} req The user's request object
+   * @param {*} res The user's response object. This is needed by the cors third-party library
+   * @param {*} authClient The authorizer class used to auth the user. This exists as an argument
+   *  so tests can override it.
+   * @param {*} datastoreClient The datastore client class used to read/write persistent data.
+   *  This exists as an argument so tests can override it. 
+   */
+function tosapi(req, res, authClient, datastoreClient) {
+  // unit tests may override these. At runtime, when called as a live Cloud Function from tos(),
+  // authClient and datastoreClient will be null.
+  const authorizer = authClient || auth.getAuthorizer();
+  const datastore = datastoreClient || ds.getDatastoreClient();
+
+  validateRequestUrl(req);
+  validateRequestMethod(req);
+  validateContentType(req);
+  const authHeader = requireAuthorizationHeader(req);
+  const reqinfo = validateInputs(req);
+
+  return authorizer.authorize(authHeader)
+    .then( userinfo => {
+      if (req.method == 'GET') {
+        return datastore.getUserResponse(userinfo, reqinfo)
+          .then( userResponse => {
+            // success case
+            return userResponse;
+          })
+          .catch( err => {
+            return rejection(err, 'Error reading user response');
+          });
+      } else if (req.method == 'POST') {
+        return datastore.insertUserResponse(userinfo, reqinfo)
+          .then( userResponse => {
+            // success case
+            return userResponse;
+          })
+          .catch( err => {
+            return rejection(err, 'Error writing user response');
+          });
+      } else {
+        return Promise.reject({statusCode: 405});
+      }
+    })
+    .catch( err => {
+      return rejection(err, 'Error authorizing user');
+    });
+}
+
 /**
- * Main function. Validates incoming requests, reads or writes to Datastore (GET or POST, respectively),
- * responds with successes or errors.
+ * Main entry point for the Cloud Function.
  * 
- * @param {!Object} req HTTP request context.
- * @param {!Object} res HTTP response context.
+ * Due to Cloud Function signature requirements, this function writes to the result object
+ * but does not return a result. Therefore it is hard to test; keep this function small
+ * and make its implementation - tosapi() - the testable one.
+ * 
  */
-exports.tos = (req, res) => {
+function tos(req, res) {
   try {
-    validateRequestUrl(req);
-    validateRequestMethod(req);
-    validateContentType(req);
     cors(req, res, () => {
-      const authHeader = requireAuthorizationHeader(req);
-      const reqinfo = validateInputs(req);
-      authorize(authHeader)
-        .then( userinfo => {
-          if (req.method == 'GET') {
-            getUserResponse(userinfo, reqinfo)
-              .then( userResponse => {
-                res.status(200).json(userResponse);
-              })
-              .catch( err => {
-                respondWithError(res, err, 'Error querying for user response: ');
-              });
-          } else if (req.method == 'POST') {
-            insertUserResponse(userinfo, reqinfo)
-              .then( userResponse => {
-                res.status(200).json(userResponse);
-              })
-              .catch( err => {
-                respondWithError(res, err, 'Error writing user response: ');
-              });
-          } else {
-            // this should never happen, given the validateRequestMethod call above
-            res.status(405).send();
-          }
+      tosapi(req, res, null, null)
+        .then( (tosresult) => {
+          res.status(200).json(tosresult);
         })
-        .catch( err => {
-          respondWithError(res, err, 'Error authorizing user: ');
-        });
-      });
+        .catch( (err) => {
+          respondWithError(res, err);
+        })
+    });
   } catch (err) {
     respondWithError(res, err);
   }
-};
+}
+
+exports.tosapi = tosapi;
+exports.tos = tos;
