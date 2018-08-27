@@ -5,7 +5,7 @@ const persistentRequest = requestPromise.defaults({
 });
 
 // for replacing the "Bearer " prefix case-insensitively in header values
-const bearerPrefix = new RegExp('bearer ', 'ig');
+const bearerPrefix = /^bearer /i;
 
 class Authorizer {
     authorize() {

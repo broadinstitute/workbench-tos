@@ -182,3 +182,24 @@ test('authorization: should not replace "Bear er " in the Authorization header',
     t.is(error.name, 'ResponseError');
     t.is(error.message, 'Error authorizing user: Unit test-thrown error! Expected the token value to be [expected-token] but got [Bear er expected-token]');
 });
+
+test('authorization: should not replace "bearer " in the middle of the Authorization header', async t => {
+    const req = {
+        path: '/v1/user/response',
+        headers: {
+            origin: 'unittest',
+            authorization: 'does not start with Bearer !!!'
+        },
+        method: 'GET',
+        query: {
+            appid: 'FireCloud',
+            tosversion: 20180815.1
+        }
+    };
+    const res = stubbedRes();
+
+    const error = await t.throwsAsync( tosapi(req, res, new TokenValueTestingAuthorizer(), echoDatastore) );
+    t.is(error.statusCode, 400);
+    t.is(error.name, 'ResponseError');
+    t.is(error.message, 'Error authorizing user: Unit test-thrown error! Expected the token value to be [expected-token] but got [does not start with Bearer !!!]');
+});
