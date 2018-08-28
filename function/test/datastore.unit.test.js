@@ -88,7 +88,7 @@ test("datastore: should reject with a 404 if user's TOSResponse doesn't exist", 
 	const error = await t.throwsAsync( tosapi(req, res, new SuccessfulMockAuthorizer(), new UnitTestDatastoreClient()) );
     t.is(error.statusCode, 404);
     t.is(error.name, 'ResponseError');
-    t.is(error.message, 'Error authorizing user: Error reading user response: 404');
+    t.is(error.message, 'Error reading user response: 404');
 });
 
 test("datastore: should reject with a 403 and 'user declined TOS' if user's TOSResponse has accepted: false", async t => {
@@ -98,18 +98,18 @@ test("datastore: should reject with a 403 and 'user declined TOS' if user's TOSR
 	const error = await t.throwsAsync( tosapi(req, res, new SuccessfulMockAuthorizer(), new UnitTestDatastoreClient()) );
     t.is(error.statusCode, 403);
     t.is(error.name, 'ResponseError');
-    t.is(error.message, 'Error authorizing user: Error reading user response: user declined TOS');
+    t.is(error.message, 'Error reading user response: user declined TOS');
 });
 
-test("datastore: should reject with a 403 and '???' if user's TOSResponse is missing an accepted value", async t => {
+// TODO: is this the correct response error message?
+test("datastore: should reject with a 403 and 'user declined TOS' if user's TOSResponse is missing an accepted value", async t => {
     const req = getRequest(333);
     const res = stubbedRes();
         
 	const error = await t.throwsAsync( tosapi(req, res, new SuccessfulMockAuthorizer(), new UnitTestDatastoreClient()) );
     t.is(error.statusCode, 403);
     t.is(error.name, 'ResponseError');
-    // TODO: is this the correct error message?
-    t.is(error.message, 'Error authorizing user: Error reading user response: user declined TOS');
+    t.is(error.message, 'Error reading user response: user declined TOS');
 });
 
 test("datastore: should return TOSResponse object/success if user has exactly 1 TOSresponse and it has accepted:true", async t => {

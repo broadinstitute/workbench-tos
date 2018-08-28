@@ -37,7 +37,11 @@ const rejection = function(errorCode, errorOrMessage) {
  * @param {*} prefix the prefix to prepend
  */
 const prefixedRejection = function(error, prefix) {
-  return Promise.reject(new ResponseError(`${prefix}: ${error.message}`, error.statusCode, error.cause));
+  let newMessage = error.message;
+  if (prefix) {
+    newMessage = `${prefix}: ${error.message}`
+  }
+  return Promise.reject(new ResponseError(newMessage, error.statusCode, error.cause));
 }
 
 module.exports = {rejection, prefixedRejection, ResponseError};

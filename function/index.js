@@ -158,9 +158,6 @@ function tosapi(req, res, authClient, datastoreClient) {
         return Promise.reject({statusCode: 405});
       }
     })
-    .catch( err => {
-      return prefixedRejection(err, 'Error authorizing user');
-    });
 }
 
 /**

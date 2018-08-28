@@ -4,6 +4,8 @@ const persistentRequest = requestPromise.defaults({
   forever: true
 });
 
+const {rejection} = require('./responseError');
+
 // for replacing the "Bearer " prefix case-insensitively in header values
 const bearerPrefix = /^bearer /i;
 
@@ -51,10 +53,10 @@ class GoogleOAuthAuthorizer extends Authorizer {
                     const statusCode = err.statusCode || 400;
                     const requestError = err.error || {};
                     const message = requestError.error_description || err.message || JSON.stringify(err);
-                    return Promise.reject({statusCode: statusCode, message: message});
+                    return rejection(statusCode, 'Error authorizing user: ' + message);
                 });
         } else {
-            return Promise.reject({statusCode: 401});
+            return rejection(401);
         }
     }
 }
