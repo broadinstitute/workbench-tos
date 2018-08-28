@@ -30,6 +30,10 @@ const userresponses = {
     111: {accepted: true, email: 'one@example.com', userid: 111, timestamp: new Date()},
     222: {accepted: false, email: 'two@example.com', userid: 222, timestamp: new Date()},
     333: {email: 'three@example.com', userid: 333, timestamp: new Date()}
+    // 966: reserved - returns an unexpected rejection during the query process
+    // 977: reserved - throws an unexpected error during the query process
+    // 988: reserved - returns multiple responses for the same user
+    // 999: reserved - user has no response
 }
 
 // mock datastore client that works with the data above
@@ -45,7 +49,18 @@ class UnitTestDatastoreClient extends GoogleDatastoreClient {
         // we ignore the metadata at runtime, so this mock returns a junk object for metadata.
         // if we have TOSResponse in the userresponses map for the user, we return it, otherwise we return []
         let hitsArray = [];
-        if (userresponse) {
+
+        // handle special error cases
+        if (userid === 988) {
+            hitsArray = [
+                {accepted: true, email: '988@example.com', userid: 988, timestamp: new Date()},
+                {accepted: false, email: '988@example.com', userid: 988, timestamp: new Date()}
+            ]
+        } else if (userid === 977) {
+            throw new Error('wow, something went very wrong and I threw an error');
+        } else if (userid === 966) {
+            return Promise.reject(new Error('wow, something went very wrong and I rejected'));
+        } else if (userresponse) {
             hitsArray = [userresponse];
         }
         return Promise.resolve(
@@ -94,7 +109,7 @@ test("datastore: should reject with a 404 if user's TOSResponse doesn't exist", 
 test("datastore: should reject with a 403 and 'user declined TOS' if user's TOSResponse has accepted: false", async t => {
     const req = getRequest(222);
     const res = stubbedRes();
-        
+
 	const error = await t.throwsAsync( tosapi(req, res, new SuccessfulMockAuthorizer(), new UnitTestDatastoreClient()) );
     t.is(error.statusCode, 403);
     t.is(error.name, 'ResponseError');
@@ -105,11 +120,41 @@ test("datastore: should reject with a 403 and 'user declined TOS' if user's TOSR
 test("datastore: should reject with a 403 and 'user declined TOS' if user's TOSResponse is missing an accepted value", async t => {
     const req = getRequest(333);
     const res = stubbedRes();
-        
+
 	const error = await t.throwsAsync( tosapi(req, res, new SuccessfulMockAuthorizer(), new UnitTestDatastoreClient()) );
     t.is(error.statusCode, 403);
     t.is(error.name, 'ResponseError');
     t.is(error.message, 'Error reading user response: user declined TOS');
+});
+
+test("datastore: should reject with a 500 and 'unexpected: returned too many results' if query somehow returns multiple TOSResponses for the same user", async t => {
+    const req = getRequest(988);
+    const res = stubbedRes();
+
+	const error = await t.throwsAsync( tosapi(req, res, new SuccessfulMockAuthorizer(), new UnitTestDatastoreClient()) );
+    t.is(error.statusCode, 500);
+    t.is(error.name, 'ResponseError');
+    t.is(error.message, 'Error reading user response: unexpected: returned too many results');
+});
+
+// test("datastore: should reject with a 500 and 'unexpected error' if the query truly throws an unexpected error", async t => {
+//     const req = getRequest(977);
+//     const res = stubbedRes();
+//
+// 	const error = await t.throwsAsync( tosapi(req, res, new SuccessfulMockAuthorizer(), new UnitTestDatastoreClient()) );
+//     t.is(error.statusCode, 500);
+//     t.is(error.name, 'ResponseError');
+//     t.is(error.message, 'Error reading user response: unexpected error');
+// });
+
+test("datastore: should reject with a 500 and the rejection's contents if the query truly throws an unexpected rejection", async t => {
+    const req = getRequest(966);
+    const res = stubbedRes();
+
+	const error = await t.throwsAsync( tosapi(req, res, new SuccessfulMockAuthorizer(), new UnitTestDatastoreClient()) );
+    t.is(error.statusCode, 500);
+    t.is(error.name, 'ResponseError');
+    t.is(error.message, 'Error reading user response: wow, something went very wrong and I rejected');
 });
 
 test("datastore: should return TOSResponse object/success if user has exactly 1 TOSresponse and it has accepted:true", async t => {
@@ -124,12 +169,9 @@ test("datastore: should return TOSResponse object/success if user has exactly 1 
 });
 
 
-    // TODO: eliminate the `Error authorizing user: ` prefix on datastore errors
-
     // ========== GET ==========
     // TODO: rejection if parent Application doesn't exist
     // TODO: rejection if parent TermsOfService doesn't exist
-    // TODO: rejection if TOSResponse query somehow returns > 1 record
     // TODO: rejection if datastore throws an error in querying
 
     // ========== POST ==========
