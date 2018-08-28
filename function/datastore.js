@@ -1,3 +1,5 @@
+const rejection = require('./responseError').rejection;
+
 // Read the project ID from environment
 const projectId = process.env.GCP_PROJECT;
 // Create datastore client
@@ -20,13 +22,6 @@ const generateKey = function(keyparts) {
 const generateTosKey = function(appId, tosVersion) {
     return generateKey(tosKeyArrayParts(appId, tosVersion));
 }
-
-const rejection = function(error, message) {
-    return Promise.reject(new Error({
-      error: error,
-      message: message
-    }));
-  }
 
 const tosKeyArrayParts = function(appId, tosVersion) {
     return [kindApplication, appId, kindTos, tosVersion.toString()];
@@ -62,6 +57,16 @@ const getTOS = function(appid, tosversion) {
             }
         });
 }
+
+/**
+ * TODO:
+ * - separate query execution from result inspection
+ * - move getTOS into class
+ * - move key generation into class?
+ * - add/use getApplication
+ * - appropriate error messages/handling
+ */
+
 
 // define datastore clients as classes for ease of unit testing - unit tests can mock out parts of these classes.
 class GoogleDatastoreClient {
@@ -117,11 +122,7 @@ class GoogleDatastoreClient {
     }
 
 
-    getUserResponse(userinfo, reqinfo) {
-
-        const { user_id: userid } = userinfo;
-        const { tosversion, appid } = reqinfo;
-
+    queryUserResponse(userid, appid, tosversion) {
         const query = datastore
             .createQuery(appNamespace, kindUserResponse)
             .hasAncestor(generateTosKey(appid, tosversion))
@@ -129,8 +130,15 @@ class GoogleDatastoreClient {
             .order('timestamp', { descending: true })
             .limit(1);
 
-        return datastore
-            .runQuery(query)
+        return datastore.runQuery(query);
+    }
+
+    getUserResponse(userinfo, reqinfo) {
+
+        const { user_id: userid } = userinfo;
+        const { tosversion, appid } = reqinfo;
+
+        return this.queryUserResponse(userid, appid, tosversion)
             .then(results => {
                 // results object is an array that contains [0]: array of rows returned; [1]: metadata about the results
                 const hits = results[0];
@@ -162,4 +170,4 @@ const getDatastoreClient = function() {
     return new GoogleDatastoreClient();
 }
 
-module.exports = { getDatastoreClient };
+module.exports = { getDatastoreClient, GoogleDatastoreClient };

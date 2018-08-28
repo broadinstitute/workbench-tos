@@ -1,6 +1,6 @@
 const auth = require('./authorization');
 const ds = require('./datastore');
-const ResponseError = require('./responseError')
+const {prefixedRejection, ResponseError} = require('./responseError');
 
 // handle CORS requests via 'cors' library
 const corsOptions = {
@@ -90,29 +90,8 @@ function validateInputs(req) {
   }
 }
 
-function rejection(error, message) {
-  const originalMessage = error.message || JSON.stringify(error);
-  let newMessage = originalMessage;
-  if (message) {
-    newMessage = `${message}: ${originalMessage}`;
-  }
-  let t;
-  // if the error object is already a ResponseError, reuse it; else, wrap it
-  if (error.name === 'ResponseError') {
-    t = new ResponseError(newMessage, error.statusCode, error.error);
-  } else {
-    const statusCode = error.statusCode || 500;
-    t = new ResponseError(newMessage, statusCode, error);
-  }
-  return Promise.reject(t);
-}
-
 function throwResponseError(statusCode, message) {
-  const msg = JSON.stringify(message || statusCode);
-  throw {
-    statusCode: statusCode,
-    message: msg
-  };
+  throw new ResponseError(message, statusCode);
 }
 
 function respondWithError(res, error, prefix) {
@@ -164,7 +143,7 @@ function tosapi(req, res, authClient, datastoreClient) {
             return userResponse;
           })
           .catch( err => {
-            return rejection(err, 'Error reading user response');
+            return prefixedRejection(err, 'Error reading user response');
           });
       } else if (req.method == 'POST') {
         return datastore.insertUserResponse(userinfo, reqinfo)
@@ -173,14 +152,14 @@ function tosapi(req, res, authClient, datastoreClient) {
             return userResponse;
           })
           .catch( err => {
-            return rejection(err, 'Error writing user response');
+            return prefixedRejection(err, 'Error writing user response');
           });
       } else {
         return Promise.reject({statusCode: 405});
       }
     })
     .catch( err => {
-      return rejection(err, 'Error authorizing user');
+      return prefixedRejection(err, 'Error authorizing user');
     });
 }
 
