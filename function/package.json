@@ -12,7 +12,7 @@
   "scripts": {
     "lint": "eslint --ignore-path ../.gitignore .",
     "test": "export FUNCTIONS_CMD='functions-emulator' && sh test/updateFunction.sh && export BASE_URL=\"http://localhost:8010/$GCP_PROJECT/$GCF_REGION\" && ava -T 20s --verbose -c 1 test/index.test.js test/*unit*test.js test/*integration*test.js",
-    "test-report": "export FUNCTIONS_CMD='functions-emulator' && sh test/updateFunction.sh && export BASE_URL=\"http://localhost:8010/$GCP_PROJECT/$GCF_REGION\" && ava --tap -T 20s --verbose -c 1 test/index.test.js test/*unit*test.js test/*integration*test.js | tap-xunit > test/reports/ava.xml"
+    "test-report": "export FUNCTIONS_CMD='functions-emulator' && sh test/updateFunction.sh && export BASE_URL=\"http://localhost:8010/$GCP_PROJECT/$GCF_REGION\" && mkdir -p test/reports/unit && ava --tap -T 20s --verbose -c 1 test/index.test.js test/*unit*test.js test/*integration*test.js | tap-xunit > test/reports/unit/ava.xml"
 
   },
   "devDependencies": {
