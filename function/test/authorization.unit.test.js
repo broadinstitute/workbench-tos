@@ -2,8 +2,7 @@ const test = require('ava');
 const sinon = require('sinon');
 const requestPromiseErrors = require('request-promise-native/errors');
 const GoogleOAuthAuthorizer = require('../authorization');
-
-const tosapi = require('..').tosapi;
+const { tosapi } = require('../index');
 
 process.env.NODE_ENV = 'test';
 

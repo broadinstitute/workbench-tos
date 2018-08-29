@@ -1,10 +1,10 @@
-const rejection = require('./responseError').rejection;
+const { rejection } = require('./responseError');
 
 // Read the project ID from environment
 const projectId = process.env.GCP_PROJECT;
 // Create datastore client
 const Datastore = require('@google-cloud/datastore');
-const datastore = new Datastore({ projectId});
+const datastore = new Datastore({ projectId });
 
 // Datastore namespace and kinds
 const appNamespace = 'app';

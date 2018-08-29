@@ -1,6 +1,6 @@
 const GoogleOAuthAuthorizer = require('./authorization');
 const GoogleDatastoreClient = require('./datastore');
-const {prefixedRejection, ResponseError} = require('./responseError');
+const { prefixedRejection, ResponseError } = require('./responseError');
 
 // handle CORS requests via 'cors' library
 const corsOptions = {

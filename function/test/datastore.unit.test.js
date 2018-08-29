@@ -3,8 +3,7 @@ const sinon = require('sinon');
 const GoogleOAuthAuthorizer = require('../authorization');
 const GoogleDatastoreClient = require('../datastore');
 const { rejection } = require('../responseError');
-
-const tosapi = require('..').tosapi;
+const { tosapi } = require('../index');
 
 process.env.NODE_ENV = 'test';
 

@@ -1,7 +1,6 @@
 const test = require('ava');
 const sinon = require('sinon');
-
-const tos = require('..').tos;
+const { tos } = require('../index');
 
 process.env.NODE_ENV = 'test';
 

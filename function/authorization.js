@@ -1,10 +1,8 @@
 // Create persistent/pipelined http client for outbound requests
 const requestPromise = require('request-promise-native');
-const persistentRequest = requestPromise.defaults({
-  forever: true
-});
+const persistentRequest = requestPromise.defaults({forever: true});
 
-const {rejection} = require('./responseError');
+const { rejection } = require('./responseError');
 
 // for replacing the "Bearer " prefix case-insensitively in header values
 const bearerPrefix = /^bearer /i;
