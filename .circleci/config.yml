@@ -29,16 +29,12 @@ jobs:
       
       - run: npm run test-report
 
-      - run: # run coverage report
+      - run:
           name: code-coverage
-          command: './node_modules/.bin/nyc report --reporter=text-lcov'
+          command: './node_modules/.bin/nyc report --reporter=lcov --report-dir=test/reports/coverage'
 
       - store_test_results: # special step to upload test results for display in Test Summary
           path: ./test/reports
-
-      - store_artifacts:
-          path: coverage
-          prefix: coverage
 
       - store_artifacts: # special step to save test results as as artifact
           path: ./test/reports
