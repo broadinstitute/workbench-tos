@@ -1,2 +1,3 @@
 .DS_Store
 function/node_modules
+function/test/reports
