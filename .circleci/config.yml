@@ -31,11 +31,11 @@ jobs:
 
       - run:
           name: test report to junit xml
-          command: './node_modules/.bin/tap-xunit < test/reports/ava.tap > test/reports/ava.xml'
+          command: './node_modules/.bin/tap-xunit < test/reports/unit/ava.tap > test/reports/unit/ava.xml'
 
       - run:
           name: test report to human-readable
-          command: './node_modules/.bin/tap-prettify < test/reports/ava.tap > test/reports/ava.txt'
+          command: './node_modules/.bin/tap-prettify < test/reports/unit/ava.tap > test/reports/unit/ava.txt'
 
       - run:
           name: code-coverage
