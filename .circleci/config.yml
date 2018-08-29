@@ -27,6 +27,8 @@ jobs:
           paths:
             - ./node_modules
       
+      - run: mkdir test/reports
+
       - run: npm run test-report
 
       - store_test_results: # special step to upload test results for display in Test Summary
