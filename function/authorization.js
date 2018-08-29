@@ -65,5 +65,4 @@ const getAuthorizer = function() {
     return new GoogleOAuthAuthorizer();
 }
 
-module.exports.getAuthorizer = getAuthorizer;
-module.exports.GoogleOAuthAuthorizer = GoogleOAuthAuthorizer;
+module.exports = GoogleOAuthAuthorizer;

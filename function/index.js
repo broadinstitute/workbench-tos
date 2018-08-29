@@ -1,5 +1,5 @@
-const auth = require('./authorization');
-const ds = require('./datastore');
+const GoogleOAuthAuthorizer = require('./authorization');
+const GoogleDatastoreClient = require('./datastore');
 const {prefixedRejection, ResponseError} = require('./responseError');
 
 // handle CORS requests via 'cors' library
@@ -125,8 +125,8 @@ function respondWithError(res, error, prefix) {
 function tosapi(req, res, authClient, datastoreClient) {
   // unit tests may override these. At runtime, when called as a live Cloud Function from tos(),
   // authClient and datastoreClient will be null.
-  const authorizer = authClient || auth.getAuthorizer();
-  const datastore = datastoreClient || ds.getDatastoreClient();
+  const authorizer = authClient || new GoogleOAuthAuthorizer();
+  const datastore = datastoreClient || new GoogleDatastoreClient();
 
   validateRequestUrl(req);
   validateRequestMethod(req);
@@ -137,23 +137,31 @@ function tosapi(req, res, authClient, datastoreClient) {
   return authorizer.authorize(authHeader)
     .then( userinfo => {
       if (req.method == 'GET') {
-        return datastore.getUserResponse(userinfo, reqinfo)
-          .then( userResponse => {
-            // success case
-            return userResponse;
-          })
-          .catch( err => {
-            return prefixedRejection(err, 'Error reading user response');
-          });
+        try {
+          return datastore.getUserResponse(userinfo, reqinfo)
+            .then( userResponse => {
+              // success case
+              return userResponse;
+            })
+            .catch( err => {
+              return prefixedRejection(err, 'Error reading user response');
+            });
+        } catch (err) {
+          return prefixedRejection(err, 'Error reading user response');
+        }
       } else if (req.method == 'POST') {
-        return datastore.insertUserResponse(userinfo, reqinfo)
-          .then( userResponse => {
-            // success case
-            return userResponse;
-          })
-          .catch( err => {
-            return prefixedRejection(err, 'Error writing user response');
-          });
+        try {
+          return datastore.createUserResponse(userinfo, reqinfo)
+            .then( userResponse => {
+              // success case
+              return userResponse;
+            })
+            .catch( err => {
+              return prefixedRejection(err, 'Error writing user response');
+            });
+        } catch (err) {
+          return prefixedRejection(err, 'Error writing user response');
+        }
       } else {
         return Promise.reject({statusCode: 405});
       }

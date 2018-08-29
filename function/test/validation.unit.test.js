@@ -14,7 +14,7 @@ function stubbedRes() {
     };
 }
 
-test('tos: should 404 on incorrect url path', t => {
+test('validation: should 404 on incorrect url path', t => {
     const req = {
         path: '/not/correct/user/response/path',
         headers: {
@@ -34,7 +34,7 @@ test('tos: should 404 on incorrect url path', t => {
     t.deepEqual(res.status.firstCall.args, [404]);
 });
 
-test('tos: should 401 on correct path but without Authorization header', t => {
+test('validation: should 401 on correct path but without Authorization header', t => {
     const req = {
         path: '/v1/user/response',
         headers: {
@@ -54,7 +54,7 @@ test('tos: should 401 on correct path but without Authorization header', t => {
     t.deepEqual(res.status.firstCall.args, [401]);
 });
 
-test('tos: should 400 on GET correct path and Authorization header but without query params', t => {
+test('validation: should 400 on GET correct path and Authorization header but without query params', t => {
     const req = {
         path: '/v1/user/response',
         headers: {
@@ -75,7 +75,7 @@ test('tos: should 400 on GET correct path and Authorization header but without q
     t.deepEqual(res.json.firstCall.args, ['appid must be a String. tosversion must be a Number.']);
 });
 
-test('tos: should 400 on GET correct path and Authorization header but missing tosversion from query params', t => {
+test('validation: should 400 on GET correct path and Authorization header but missing tosversion from query params', t => {
     const req = {
         path: '/v1/user/response',
         headers: {
@@ -98,7 +98,7 @@ test('tos: should 400 on GET correct path and Authorization header but missing t
     t.deepEqual(res.json.firstCall.args, ['tosversion must be a Number.']);
 });
 
-test('tos: should 400 on GET correct path and Authorization header, but tosversion is non-numeric in query params', t => {
+test('validation: should 400 on GET correct path and Authorization header, but tosversion is non-numeric in query params', t => {
     const req = {
         path: '/v1/user/response',
         headers: {
@@ -122,7 +122,7 @@ test('tos: should 400 on GET correct path and Authorization header, but tosversi
     t.deepEqual(res.json.firstCall.args, ['tosversion must be a Number.']);
 });
 
-test('tos: should 400 on GET correct path and Authorization header but missing appid from query params', t => {
+test('validation: should 400 on GET correct path and Authorization header but missing appid from query params', t => {
     const req = {
         path: '/v1/user/response',
         headers: {
@@ -147,7 +147,7 @@ test('tos: should 400 on GET correct path and Authorization header but missing a
 
 const invalidMethods = ['PUT','DELETE','HEAD','PATCH','TRACE','CONNECT'];
 invalidMethods.forEach( method => {
-    test('tos: should 405 on ' + method + ' verb', t => {
+    test('validation: should 405 on ' + method + ' verb', t => {
         const req = {
             path: '/v1/user/response',
             headers: {
@@ -171,7 +171,7 @@ invalidMethods.forEach( method => {
     });
 });
 
-test('tos: should 415 on POST without a content-type', t => {
+test('validation: should 415 on POST without a content-type', t => {
     const req = {
         path: '/v1/user/response',
         headers: {
@@ -190,7 +190,7 @@ test('tos: should 415 on POST without a content-type', t => {
     t.deepEqual(res.status.firstCall.args, [415]);
 });
 
-test('tos: should 415 on POST with the wrong content-type', t => {
+test('validation: should 415 on POST with the wrong content-type', t => {
     const req = {
         path: '/v1/user/response',
         headers: {
@@ -210,7 +210,7 @@ test('tos: should 415 on POST with the wrong content-type', t => {
     t.deepEqual(res.status.firstCall.args, [415]);
 });
 
-test('tos: should 400 on POST with the right content-type but no body', t => {
+test('validation: should 400 on POST with the right content-type but no body', t => {
     const req = {
         path: '/v1/user/response',
         headers: {
@@ -231,7 +231,7 @@ test('tos: should 400 on POST with the right content-type but no body', t => {
     t.deepEqual(res.json.firstCall.args, ['Request body must be valid JSON.']);
 });
 
-test('tos: should 400 on POST with the right content-type but empty body', t => {
+test('validation: should 400 on POST with the right content-type but empty body', t => {
     const req = {
         path: '/v1/user/response',
         headers: {
@@ -253,7 +253,7 @@ test('tos: should 400 on POST with the right content-type but empty body', t => 
     t.deepEqual(res.json.firstCall.args, ['accepted must be a Boolean. appid must be a String. tosversion must be a Number.']);
 });
 
-test('tos: should 400 on POST when missing accepted from body', t => {
+test('validation: should 400 on POST when missing accepted from body', t => {
     const req = {
         path: '/v1/user/response',
         headers: {
@@ -278,7 +278,7 @@ test('tos: should 400 on POST when missing accepted from body', t => {
     t.deepEqual(res.json.firstCall.args, ['accepted must be a Boolean.']);
 });
 
-test('tos: should 400 on POST when accepted is non-Boolean in body', t => {
+test('validation: should 400 on POST when accepted is non-Boolean in body', t => {
     const req = {
         path: '/v1/user/response',
         headers: {
@@ -304,7 +304,7 @@ test('tos: should 400 on POST when accepted is non-Boolean in body', t => {
     t.deepEqual(res.json.firstCall.args, ['accepted must be a Boolean.']);
 });
 
-test('tos: should 400 on POST when missing appid from body', t => {
+test('validation: should 400 on POST when missing appid from body', t => {
     const req = {
         path: '/v1/user/response',
         headers: {
@@ -329,7 +329,7 @@ test('tos: should 400 on POST when missing appid from body', t => {
     t.deepEqual(res.json.firstCall.args, ['appid must be a String.']);
 });
 
-test('tos: should 400 on POST when missing tosversion from body', t => {
+test('validation: should 400 on POST when missing tosversion from body', t => {
     const req = {
         path: '/v1/user/response',
         headers: {
@@ -354,7 +354,7 @@ test('tos: should 400 on POST when missing tosversion from body', t => {
     t.deepEqual(res.json.firstCall.args, ['tosversion must be a Number.']);
 });
 
-test('tos: should 400 on POST when tosversion is non-numeric in body', t => {
+test('validation: should 400 on POST when tosversion is non-numeric in body', t => {
     const req = {
         path: '/v1/user/response',
         headers: {
