@@ -11,14 +11,15 @@
   },
   "scripts": {
     "lint": "eslint --ignore-path ../.gitignore .",
-    "test": "export FUNCTIONS_CMD='functions-emulator' && sh test/updateFunction.sh && export BASE_URL=\"http://localhost:8010/$GCP_PROJECT/$GCF_REGION\" && ava -T 20s --verbose -c 1 test/index.test.js test/*unit*test.js test/*integration*test.js",
-    "test-report": "export FUNCTIONS_CMD='functions-emulator' && sh test/updateFunction.sh && export BASE_URL=\"http://localhost:8010/$GCP_PROJECT/$GCF_REGION\" && mkdir -p test/reports/unit && ava --tap -T 20s --verbose -c 1 test/index.test.js test/*unit*test.js test/*integration*test.js | tap-xunit > test/reports/unit/ava.xml"
-
+    "test": "nyc ava --timeout=30s --verbose test/*test.js",
+    "test-report": "nyc ava --tap --timeout=30s --verbose test/*test.js | tap-xunit > test/reports/unit/ava.xml",
+    "integration-test": "export FUNCTIONS_CMD='functions-emulator' && sh test/updateFunction.sh && export BASE_URL=\"http://localhost:8010/$GCP_PROJECT/$GCF_REGION\" && ava -T 20s --verbose -c 1 test/index.test.js test/*unit*test.js test/*integration*test.js"
   },
   "devDependencies": {
     "ava": "1.0.0-beta.7",
     "eslint": "^5.4.0",
     "eslint-config-strongloop": "^2.1.0",
+    "nyc": "^13.0.1",
     "sinon": "6.1.5",
     "tap-xunit": "^2.3.0"
   },
