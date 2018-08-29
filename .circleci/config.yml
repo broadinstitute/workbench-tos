@@ -32,4 +32,4 @@ jobs:
       - run: npm run test-report
 
       - store_test_results: # special step to upload test results for display in Test Summary
-          path: ./test/reports/ava.xml
+          path: ./test/reports
