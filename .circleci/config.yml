@@ -33,6 +33,10 @@ jobs:
           name: code-coverage
           command: './node_modules/.bin/nyc report --reporter=lcov --report-dir=test/reports/coverage'
 
+      - run:
+          name: codecov upload
+          command: './node_modules/.bin/codecov'
+
       - store_test_results: # special step to upload test results for display in Test Summary
           path: ./test/reports
 
