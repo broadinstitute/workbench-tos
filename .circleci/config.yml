@@ -30,6 +30,14 @@ jobs:
       - run: npm run test-report
 
       - run:
+          name: test report to junit xml
+          command: './node_modules/.bin/tap-xunit < test/reports/ava.tap > test/reports/ava.xml'
+
+      - run:
+          name: test report to human-readable
+          command: './node_modules/.bin/tap-prettify < test/reports/ava.tap > test/reports/ava.txt'
+
+      - run:
           name: code-coverage
           command: './node_modules/.bin/nyc report --reporter=lcov --report-dir=test/reports/coverage'
 
