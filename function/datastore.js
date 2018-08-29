@@ -37,16 +37,6 @@ const generateUserResponseKey = function(appId, tosVersion) {
     return generateKey(userResponseParts);
 }
 
-/**
- * TODO:
- * - separate query execution from result inspection
- * - move getTOS into class
- * - move key generation into class?
- * - add/use getApplication
- * - appropriate error messages/handling
- */
-
-
 // define datastore clients as classes for ease of unit testing - unit tests can mock out parts of these classes.
 class GoogleDatastoreClient {
 
@@ -229,8 +219,8 @@ class GoogleDatastoreClient {
         return Promise.all([appCheck, tosCheck])
             .then(() => {
                 return this.insertUserResponse(userid, email, appid, tosversion, accepted);
-                    //     // TODO: do we want any validation of the response, or is it safe to rely on datastore
-                    //     // throwing errors if the insert failed?
+                    // TODO: do we want any validation of the response, or is it safe to rely on datastore
+                    // throwing errors if the insert failed?
             })
             .catch(err => {
                 if (err.statusCode) {

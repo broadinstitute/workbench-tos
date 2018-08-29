@@ -190,7 +190,7 @@ test("GET userresponse: should reject with a 403 and 'user declined TOS' if user
     t.is(error.message, 'Error reading user response: user declined TOS');
 });
 
-// TODO: is this the correct response error message?
+// TODO: is this the correct response error message for this situation?
 test("GET userresponse: should reject with a 403 and 'user declined TOS' if user's TOSResponse is missing an accepted value", async t => {
     const req = getRequest(333);
     const res = stubbedRes();
