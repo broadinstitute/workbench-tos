@@ -1,0 +1,30 @@
+# Javascript Node CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-javascript/ for more details
+#
+version: 2
+jobs:
+  build:
+    docker:
+      # This Cloud Function uses the Node.js 6 runtime
+      - image: circleci/node:6.14
+
+    # all the Node.js code is in the subdirectory "function". Set this as the default working directory
+    # but make sure to override the working dir for steps like checkout.
+    working_directory: ~/repo/function
+
+    steps:
+      - checkout:
+          working_directory: ~/repo
+      
+      - restore_cache: # special step to restore the dependency cache 
+          key: dependency-cache-{{ checksum "package.json" }}
+      
+      - run: npm install
+      
+      - save_cache: # special step to save the dependency cache
+          key: dependency-cache-{{ checksum "package.json" }}
+          paths:
+            - ./node_modules
+      
+      - run: npm test
