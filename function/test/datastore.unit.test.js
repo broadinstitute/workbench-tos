@@ -26,6 +26,9 @@ const toses = {
     20180815.1: {}
 }
 
+// in datastore, our primary filter for finding user responses is the the user's subjectid, which is numeric;
+// we also expect Google's tokeninfo endpoint to return a numeric user_id value. Therefore, we use numeric
+// keys here in our mock-data map.
 const userresponses = {
     111: {accepted: true, email: 'one@example.com', userid: 111, timestamp: new Date()},
     222: {accepted: false, email: 'two@example.com', userid: 222, timestamp: new Date()},
@@ -41,6 +44,7 @@ const userresponses = {
 class UnitTestDatastoreClient extends GoogleDatastoreClient {
     
     insertUserResponse(userid, email, appid, tosversion, accepted) {
+        // see userresponses const above for explanation of the userid values
         if (userid === 966) {
             return Promise.reject(new Error('wow, something went very wrong and I rejected'));
         } else if (userid === 977) {
@@ -112,7 +116,7 @@ class UnitTestDatastoreClient extends GoogleDatastoreClient {
         // if we have TOSResponse in the userresponses map for the user, we return it, otherwise we return []
         let hitsArray = [];
 
-        // handle special error cases
+        // handle special error cases. see userresponses const above for explanation of the userid values
         if (userid === 988) {
             hitsArray.push({accepted: true, email: '988@example.com', userid: 988, timestamp: new Date()});
             hitsArray.push({accepted: false, email: '988@example.com', userid: 988, timestamp: new Date()});
