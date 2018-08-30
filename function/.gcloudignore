@@ -14,5 +14,6 @@
 .gitignore
 
 .eslintrc.json
+.nyc_output
 node_modules
 test
