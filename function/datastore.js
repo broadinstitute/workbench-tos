@@ -48,8 +48,8 @@ class GoogleDatastoreClient {
      * Generic query handler.
      *
      * Accepts error messages with the following keys:
-     *  0: if the query found no results
-     *  2: if the query found > 1 result
+     *  'none': if the query found no results
+     *  'many': if the query found > 1 result
      *
      * Error message values are of the form {statusCode: 123, message: 'string or undefined'}
      *
@@ -64,11 +64,11 @@ class GoogleDatastoreClient {
                 if (hits.length === 1) {
                     return hits[0];
                 } else if (hits.length == 0) {
-                    return rejection(errorMessages[0].statusCode, errorMessages[0].message);
+                    return rejection(errorMessages.none.statusCode, errorMessages.none.message);
                 } else {
                     // defensive! This should never happen since all known code either sets limit(1) in its query
                     // or is querying for a specific record id.
-                    return rejection(errorMessages[2].statusCode, errorMessages[2].message);
+                    return rejection(errorMessages.many.statusCode, errorMessages.many.message);
                 }
             })
             .catch( err => {
@@ -99,8 +99,9 @@ class GoogleDatastoreClient {
         return this.resultHandler(
             this.selectApp(appid),
             {
-                0: {statusCode: 400, message: `Application ${appid} does not exist.`},
-                2: {statusCode: 500, message: 'unexpected: returned too many results'}
+                // see resultHandler comment for expected keys
+                none: {statusCode: 400, message: `Application ${appid} does not exist.`},
+                many: {statusCode: 500, message: 'unexpected: returned too many results'}
             }
         )
     }
@@ -125,8 +126,9 @@ class GoogleDatastoreClient {
         return this.resultHandler(
             this.selectTOS(appid, tosversion),
             {
-                0: {statusCode: 400, message: `TermsOfService ${appid}/${tosversion} does not exist.`},
-                2: {statusCode: 500, message: 'unexpected: returned too many results'}
+                // see resultHandler comment for expected keys
+                none: {statusCode: 400, message: `TermsOfService ${appid}/${tosversion} does not exist.`},
+                many: {statusCode: 500, message: 'unexpected: returned too many results'}
             }
         )
     }
@@ -159,8 +161,9 @@ class GoogleDatastoreClient {
         return this.resultHandler(
             this.selectUserResponse(userid, appid, tosversion),
             {
-                0: {statusCode: 404},
-                2: {statusCode: 500, message: 'unexpected: returned too many results'}
+                // see resultHandler comment for expected keys
+                none: {statusCode: 404},
+                many: {statusCode: 500, message: 'unexpected: returned too many results'}
             }
         ).then( rec => {
             // special handling for the user record. We can't rely just on presence/absence of a user response - we have
