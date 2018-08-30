@@ -31,7 +31,7 @@ test('tos: should 404 on incorrect url path', t => {
     // Verify behavior of tested function
     t.true(res.json.calledOnce);
     t.true(res.status.calledOnce);
-    t.deepEqual(res.status.firstCall.args, [404]);
+    t.deepEqual(res.status.firstCall.args, [404444444444]); // should bbe 404
 });
 
 test('tos: should 401 on correct path but without Authorization header', t => {
