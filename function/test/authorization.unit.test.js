@@ -87,7 +87,7 @@ test('authorization: should return error if authorizer returns an error', async 
     const res = stubbedRes();
     
 	const error = await t.throwsAsync( tosapi(req, res, new FailingMockAuthorizer(), echoDatastore) );
-    t.is(error.statusCode, 4000000000000); // should be 400
+    t.is(error.statusCode, 400);
     t.is(error.name, 'ResponseError');
     t.is(error.message, 'Error authorizing user: Invalid Value');
 });
