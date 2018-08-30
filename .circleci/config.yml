@@ -32,14 +32,17 @@ jobs:
       - run:
           name: test report to junit xml
           command: './node_modules/.bin/tap-xunit < test/reports/unit/ava.tap > test/reports/unit/ava.xml'
+          when: always # so we always get test summaries in circle
 
       - run:
           name: test report to human-readable
           command: './node_modules/.bin/tap-summary --no-ansi - < test/reports/unit/ava.tap > test/reports/unit/ava.txt'
+          when: always # so we always get test summaries in circle
 
       - run:
           name: code-coverage
           command: './node_modules/.bin/nyc report --reporter=lcov --report-dir=test/reports/coverage'
+          when: always # good idea? I think we always want coverage reports but we could choose to skip this if tests fail
 
       - run:
           name: codecov upload
