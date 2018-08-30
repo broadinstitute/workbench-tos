@@ -35,7 +35,7 @@ jobs:
 
       - run:
           name: test report to human-readable
-          command: './node_modules/.bin/tap-prettify - < test/reports/unit/ava.tap > test/reports/unit/ava.txt'
+          command: './node_modules/.bin/tap-summary --no-ansi - < test/reports/unit/ava.tap > test/reports/unit/ava.txt'
 
       - run:
           name: code-coverage

@@ -22,7 +22,7 @@
     "eslint-config-strongloop": "^2.1.0",
     "nyc": "^13.0.1",
     "sinon": "6.1.5",
-    "tap-prettify": "0.0.2",
+    "tap-summary": "^4.0.0",
     "tap-xunit": "^2.3.0"
   },
   "dependencies": {
