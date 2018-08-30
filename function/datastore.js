@@ -71,13 +71,6 @@ class GoogleDatastoreClient {
                     return rejection(errorMessages.many.statusCode, errorMessages.many.message);
                 }
             })
-            .catch( err => {
-                if (err.statusCode) {
-                    return rejection(err.statusCode, err);
-                } else {
-                    return rejection(500, err);
-                }
-            });
     }
 
 
@@ -225,13 +218,6 @@ class GoogleDatastoreClient {
                     // TODO: do we want any validation of the response, or is it safe to rely on datastore
                     // throwing errors if the insert failed?
             })
-            .catch(err => {
-                if (err.statusCode) {
-                    return rejection(err.statusCode, err);
-                } else {
-                    return rejection(500, err);
-                }
-            });
     }
 
 }
