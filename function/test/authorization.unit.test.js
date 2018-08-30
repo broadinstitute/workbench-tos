@@ -1,9 +1,8 @@
 const test = require('ava');
 const sinon = require('sinon');
 const requestPromiseErrors = require('request-promise-native/errors');
-const GoogleOAuthAuthorizer = require('../authorization').GoogleOAuthAuthorizer
-
-const tosapi = require('..').tosapi;
+const GoogleOAuthAuthorizer = require('../authorization');
+const { tosapi } = require('../index');
 
 process.env.NODE_ENV = 'test';
 
@@ -49,7 +48,7 @@ const echoDatastore = {
     // this echos the userinfo returned by the authorizer.
     // we use this echo to test that the userinfo object is passed
     // correctly from the authorizer to the datastore client.
-    insertUserResponse: (userinfo, reqinfo) => {
+    createUserResponse: (userinfo, reqinfo) => {
         return Promise.resolve(userinfo);
     },
     getUserResponse: (userinfo, reqinfo) => {

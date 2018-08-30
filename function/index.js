@@ -1,6 +1,6 @@
-const auth = require('./authorization');
-const ds = require('./datastore');
-const ResponseError = require('./responseError')
+const GoogleOAuthAuthorizer = require('./authorization');
+const GoogleDatastoreClient = require('./datastore');
+const { prefixedRejection, ResponseError } = require('./responseError');
 
 // handle CORS requests via 'cors' library
 const corsOptions = {
@@ -90,29 +90,8 @@ function validateInputs(req) {
   }
 }
 
-function rejection(error, message) {
-  const originalMessage = error.message || JSON.stringify(error);
-  let newMessage = originalMessage;
-  if (message) {
-    newMessage = `${message}: ${originalMessage}`;
-  }
-  let t;
-  // if the error object is already a ResponseError, reuse it; else, wrap it
-  if (error.name === 'ResponseError') {
-    t = new ResponseError(newMessage, error.statusCode, error.error);
-  } else {
-    const statusCode = error.statusCode || 500;
-    t = new ResponseError(newMessage, statusCode, error);
-  }
-  return Promise.reject(t);
-}
-
 function throwResponseError(statusCode, message) {
-  const msg = JSON.stringify(message || statusCode);
-  throw {
-    statusCode: statusCode,
-    message: msg
-  };
+  throw new ResponseError(message, statusCode);
 }
 
 function respondWithError(res, error, prefix) {
@@ -146,8 +125,8 @@ function respondWithError(res, error, prefix) {
 function tosapi(req, res, authClient, datastoreClient) {
   // unit tests may override these. At runtime, when called as a live Cloud Function from tos(),
   // authClient and datastoreClient will be null.
-  const authorizer = authClient || auth.getAuthorizer();
-  const datastore = datastoreClient || ds.getDatastoreClient();
+  const authorizer = authClient || new GoogleOAuthAuthorizer();
+  const datastore = datastoreClient || new GoogleDatastoreClient();
 
   validateRequestUrl(req);
   validateRequestMethod(req);
@@ -158,30 +137,27 @@ function tosapi(req, res, authClient, datastoreClient) {
   return authorizer.authorize(authHeader)
     .then( userinfo => {
       if (req.method == 'GET') {
-        return datastore.getUserResponse(userinfo, reqinfo)
-          .then( userResponse => {
-            // success case
-            return userResponse;
-          })
-          .catch( err => {
-            return rejection(err, 'Error reading user response');
-          });
+        try {
+          return datastore.getUserResponse(userinfo, reqinfo)
+            .catch( err => {
+              return prefixedRejection(err, 'Error reading user response');
+            });
+        } catch (err) {
+          return prefixedRejection(err, 'Error reading user response');
+        }
       } else if (req.method == 'POST') {
-        return datastore.insertUserResponse(userinfo, reqinfo)
-          .then( userResponse => {
-            // success case
-            return userResponse;
-          })
-          .catch( err => {
-            return rejection(err, 'Error writing user response');
-          });
+        try {
+          return datastore.createUserResponse(userinfo, reqinfo)
+            .catch( err => {
+              return prefixedRejection(err, 'Error writing user response');
+            });
+        } catch (err) {
+          return prefixedRejection(err, 'Error writing user response');
+        }
       } else {
         return Promise.reject({statusCode: 405});
       }
     })
-    .catch( err => {
-      return rejection(err, 'Error authorizing user');
-    });
 }
 
 /**
