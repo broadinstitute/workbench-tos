@@ -139,10 +139,6 @@ function tosapi(req, res, authClient, datastoreClient) {
       if (req.method == 'GET') {
         try {
           return datastore.getUserResponse(userinfo, reqinfo)
-            .then( userResponse => {
-              // success case
-              return userResponse;
-            })
             .catch( err => {
               return prefixedRejection(err, 'Error reading user response');
             });
@@ -152,10 +148,6 @@ function tosapi(req, res, authClient, datastoreClient) {
       } else if (req.method == 'POST') {
         try {
           return datastore.createUserResponse(userinfo, reqinfo)
-            .then( userResponse => {
-              // success case
-              return userResponse;
-            })
             .catch( err => {
               return prefixedRejection(err, 'Error writing user response');
             });
