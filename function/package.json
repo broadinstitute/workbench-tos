@@ -12,8 +12,7 @@
   "scripts": {
     "lint": "eslint --ignore-path ../.gitignore .",
     "test": "nyc ava --timeout=30s --verbose test/*test.js",
-    "test-report": "mkdir -p test/reports/unit && nyc ava --tap --timeout=30s --verbose test/*test.js > test/reports/unit/ava.tap",
-    "integration-test": "export FUNCTIONS_CMD='functions-emulator' && sh test/updateFunction.sh && export BASE_URL=\"http://localhost:8010/$GCP_PROJECT/$GCF_REGION\" && ava -T 20s --verbose -c 1 test/index.test.js test/*unit*test.js test/*integration*test.js"
+    "test-report": "mkdir -p test/reports/unit && nyc ava --tap --timeout=30s --verbose test/*test.js > test/reports/unit/ava.tap"
   },
   "devDependencies": {
     "ava": "1.0.0-beta.7",

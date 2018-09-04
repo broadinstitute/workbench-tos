@@ -1,8 +1,12 @@
 
 # Indexes
+Start here: https://cloud.google.com/datastore/docs/concepts/indexes for an introduction to *indexes* in Datastore.
+
 The [index.yaml](index.yaml) in this directory contains the indexes necessary to power the TOS-related queries. Since Datastore is shared for an entire Google project, please note that other applications may need other indexes; be wary of running `cleanup-indexes`.
 
 # Data Structure
+Start here: https://cloud.google.com/datastore/docs/concepts/entities#kinds_and_identifiers for an introduction to *kinds* in Datastore.
+
 The TOS function expects three Datastore kinds: `Application`, `TermsOfService`, and `TOSResponse`. These represent an application (ex. FireCloud), a Terms of Service for that application and a user's response to that Terms of Service, respectively. All three kinds reside in a namespace named `app`.
 
 All `TOSResponse` entities must have a `TermsOfService` entity as their ancestor, and all `TermsOfService` entities must have an `Application` entity as their ancestor.
@@ -24,8 +28,8 @@ All `TermsOfService` entities must have an `Application` entity as their ancesto
 ## TOSResponse
 The `TOSResponse` kind expects the following properties:
 
-* `userid`: String, ex. '123456'
-* `email`: String, ex. help@example.com
+* `userid`: String, the unique id for the user; ex. '123456'
+* `email`: String, the email address for the user; ex. help@example.com
 * `accepted`: Boolean, whether or not the user accepted the terms of service
 * `timestamp`: Date/time, should be the datetime of insertion
 
