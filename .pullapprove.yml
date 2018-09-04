@@ -1,7 +1,7 @@
 # http://docs.pullapprove.com/
 # See also the branch protection settings for your repo in github
 # Github branch protections can't let us specify "who" is required to approve a PR
-version: 3
+version: 2
 
 group_defaults:
   approve_by_comment:
