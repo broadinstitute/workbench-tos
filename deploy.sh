@@ -9,8 +9,9 @@ if [ "$GIT_BRANCH" == "develop" ]; then
     ENVIRONMENT="dev"
 elif [ "$GIT_BRANCH" == "alpha" ]; then
     ENVIRONMENT="alpha"
-elif [ "$GIT_BRANCH" == "perf" ]; then
-	ENVIRONMENT="perf"
+# TODO: we don't support auto-deploy to perf yet.
+# elif [ "$GIT_BRANCH" == "perf" ]; then
+#	ENVIRONMENT="perf"
 elif [ "$GIT_BRANCH" == "staging" ]; then
     ENVIRONMENT="staging"
 elif [ "$GIT_BRANCH" == "master" ]; then
@@ -25,12 +26,7 @@ PROJECT_NAME="broad-dsde-${ENVIRONMENT}"
 SERVICE_ACCT_KEY_FILE="deploy_account.json"
 # Get the tier specific credentials for the service account out of Vault
 # Put key into SERVICE_ACCT_KEY_FILE
-#
-# NB: we read the secret from Martha's path. Both Martha and workbench-tos are Cloud Functions and share the same permissions as far
-# as who can deploy - so we just reuse Martha's creds here.
-#
-# TODO: move both Martha and workbench-tos deploys to read from a common path instead of the Martha path to avoid confusion
-docker run --rm -e VAULT_TOKEN=${VAULT_TOKEN} broadinstitute/dsde-toolbox vault read --format=json "secret/dsde/martha/${ENVIRONMENT}/deploy-account.json" | jq .data > ${SERVICE_ACCT_KEY_FILE}
+docker run --rm -e VAULT_TOKEN=${VAULT_TOKEN} broadinstitute/dsde-toolbox vault read --format=json "secret/dsde/${ENVIRONMENT}/common/cloud-function-deploy-account.json" | jq .data > ${SERVICE_ACCT_KEY_FILE}
 
 CODEBASE_PATH=/workbench-tos
 # Process all Consul .ctmpl files
