@@ -24,13 +24,13 @@ fi
 PROJECT_NAME="broad-dsde-${ENVIRONMENT}"
 
 SERVICE_ACCT_KEY_FILE="deploy_account.json"
-# Get the tier specific credentials for the service account out of Vault
+# Get the environment-specific credentials for the service account out of Vault
 # Put key into SERVICE_ACCT_KEY_FILE
 docker run --rm -e VAULT_TOKEN=${VAULT_TOKEN} broadinstitute/dsde-toolbox vault read --format=json "secret/dsde/${ENVIRONMENT}/common/cloud-function-deploy-account.json" | jq .data > ${SERVICE_ACCT_KEY_FILE}
 
 CODEBASE_PATH=/workbench-tos
 # Process all Consul .ctmpl files
-# Vault token is required by the docker image regardless of whether you having any data in Vault or not
+# Vault token is required by the docker image regardless of whether you have any data in Vault or not
 docker run --rm -v $PWD:${CODEBASE_PATH} \
   -e INPUT_PATH=${CODEBASE_PATH}/function \
   -e OUT_PATH=${CODEBASE_PATH}/function \
