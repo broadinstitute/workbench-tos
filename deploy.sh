@@ -9,9 +9,8 @@ if [ "$GIT_BRANCH" == "develop" ]; then
     ENVIRONMENT="dev"
 elif [ "$GIT_BRANCH" == "alpha" ]; then
     ENVIRONMENT="alpha"
-# TODO: we don't support auto-deploy to perf yet.
-# elif [ "$GIT_BRANCH" == "perf" ]; then
-#	ENVIRONMENT="perf"
+elif [ "$GIT_BRANCH" == "perf" ]; then
+	ENVIRONMENT="perf"
 elif [ "$GIT_BRANCH" == "staging" ]; then
     ENVIRONMENT="staging"
 elif [ "$GIT_BRANCH" == "master" ]; then
