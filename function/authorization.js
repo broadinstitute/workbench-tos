@@ -5,7 +5,14 @@ const _ = require('lodash');
 
 const { rejection, ResponseError } = require('./responseError');
 
-// fail-safe handling of potentially-missing require
+// fail-safe handling of potentially-missing require. In live deploys, this require
+// will exist because our deploy process will render it based on config.js.ctmpl.
+// if you have simply checked out the codebase and are running unit tests - without
+// rendering .ctmpls - the require will not exist. We want to allow this.
+//
+// Unit tests override the audiencePrefixes and emailSuffixes values.
+// In a live deploy, if the config is missing, we default to [], which equates to an
+// empty whitelist.
 let audiencePrefixes = [];
 let emailSuffixes = [];
 try {
@@ -30,7 +37,7 @@ class GoogleOAuthAuthorizer {
     constructor(configObj) {
         const config = configObj || {};
         this.audiencePrefixes = config.audiencePrefixes || audiencePrefixes;
-        this.emailSuffixes = config.emailSuffixes || audiencePrefixes;
+        this.emailSuffixes = config.emailSuffixes || emailSuffixes;
     }
 
     callTokenInfoApi(token) {
