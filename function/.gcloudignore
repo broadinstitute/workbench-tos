@@ -15,5 +15,6 @@
 
 .eslintrc.json
 .nyc_output
+config.js.ctmpl
 node_modules
 test

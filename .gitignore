@@ -1,5 +1,6 @@
 .DS_Store
 deploy_account.json
+function/config.js
 function/node_modules
 function/test/reports
 function/.nyc_output
