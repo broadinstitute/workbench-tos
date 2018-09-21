@@ -54,23 +54,30 @@ class GoogleOAuthAuthorizer {
     }
 
     validateAudienceOrEmail(audience, email) {
+        let valid = false;
         // following two loops use for..in instead of Array.forEach to allow breaking out early
+
         // does the audience value start with one of our whitelisted prefixes?
         for (const i in this.audiencePrefixes) {
             const prefix = this.audiencePrefixes[i];
             if (audience.startsWith(prefix.toString())) {
-                return true;
+                valid = true;
+                break;
             }
         }
+        // if we haven't matched an audience,
         // does the email value end with one of our whitelisted suffixes?
-        for (const i in this.emailSuffixes) {
-            const suffix = this.emailSuffixes[i];
-            if (email.endsWith(suffix.toString())) {
-                return true;
+        if (!valid) {
+            for (const i in this.emailSuffixes) {
+                const suffix = this.emailSuffixes[i];
+                if (email.endsWith(suffix.toString())) {
+                    valid = true;
+                    break;
+                }
             }
         }
 
-        return false;
+        return valid;
     }
 
     validateUserInfo(userinfo) {
