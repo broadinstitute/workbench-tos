@@ -77,27 +77,27 @@ class GoogleOAuthAuthorizer {
         // validate all fields exist
         userInfoKeys.forEach( (key) => {
             if (!userinfo.hasOwnProperty(key)) {
-                throw new ResponseError(`OAuth token does not include ${key}`, 403);
+                throw new ResponseError(`OAuth token does not include ${key}`, 401);
             }
         })
         // validate verified_email is Boolean and true
         const verified = userinfo.verified_email;
         if (!_.isBoolean(verified)) {
-            throw new ResponseError('OAuth token verified_email must be a Boolean.', 403);
+            throw new ResponseError('OAuth token verified_email must be a Boolean.', 401);
         } else if (!verified) {
-            throw new ResponseError('OAuth token verified_email must be true.', 403);
+            throw new ResponseError('OAuth token verified_email must be true.', 401);
         }
 
         // validate expires_in is numeric and > 0
         const expires = _.toNumber(userinfo.expires_in);
         if (isNaN(expires)) {
-            throw new ResponseError('OAuth token expires_in must be a number.', 403);
+            throw new ResponseError('OAuth token expires_in must be a number.', 401);
         } else if (expires <= 0) {
-            throw new ResponseError(`OAuth token has expired (expires_in: ${expires})`, 403);
+            throw new ResponseError(`OAuth token has expired (expires_in: ${expires})`, 401);
         }
         // validate audience/email
         if (!this.validateAudienceOrEmail(userinfo.audience.toString(), userinfo.email.toString())) {
-            throw new ResponseError(`OAuth token has unacceptable audience (${userinfo.audience}) or email (${userinfo.email})`, 403);
+            throw new ResponseError(`OAuth token has unacceptable audience (${userinfo.audience}) or email (${userinfo.email})`, 401);
         };
     }
 

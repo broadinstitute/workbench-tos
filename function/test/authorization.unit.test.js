@@ -253,7 +253,7 @@ test('authorization: should reject if email key is missing from OAuth userinfo',
     }
 
     const error = await t.throwsAsync( tosapi(validReq, stubbedRes(), new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore) );
-    t.is(error.statusCode, 403);
+    t.is(error.statusCode, 401);
     t.is(error.name, 'ResponseError');
     t.is(error.message, 'Error authorizing user: OAuth token does not include email');
 });
@@ -268,7 +268,7 @@ test('authorization: should reject if verified_email key is missing from OAuth u
     }
 
     const error = await t.throwsAsync( tosapi(validReq, stubbedRes(), new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore) );
-    t.is(error.statusCode, 403);
+    t.is(error.statusCode, 401);
     t.is(error.name, 'ResponseError');
     t.is(error.message, 'Error authorizing user: OAuth token does not include verified_email');
 });
@@ -283,7 +283,7 @@ test('authorization: should reject if user_id key is missing from OAuth userinfo
     }
 
     const error = await t.throwsAsync( tosapi(validReq, stubbedRes(), new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore) );
-    t.is(error.statusCode, 403);
+    t.is(error.statusCode, 401);
     t.is(error.name, 'ResponseError');
     t.is(error.message, 'Error authorizing user: OAuth token does not include user_id');
 });
@@ -298,7 +298,7 @@ test('authorization: should reject if audience key is missing from OAuth userinf
     }
 
     const error = await t.throwsAsync( tosapi(validReq, stubbedRes(), new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore) );
-    t.is(error.statusCode, 403);
+    t.is(error.statusCode, 401);
     t.is(error.name, 'ResponseError');
     t.is(error.message, 'Error authorizing user: OAuth token does not include audience');
 });
@@ -313,7 +313,7 @@ test('authorization: should reject if expires_in key is missing from OAuth useri
     }
 
     const error = await t.throwsAsync( tosapi(validReq, stubbedRes(), new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore) );
-    t.is(error.statusCode, 403);
+    t.is(error.statusCode, 401);
     t.is(error.name, 'ResponseError');
     t.is(error.message, 'Error authorizing user: OAuth token does not include expires_in');
 });
@@ -330,7 +330,7 @@ test('authorization: should reject if verified_email is false in OAuth userinfo'
     }
 
     const error = await t.throwsAsync( tosapi(validReq, stubbedRes(), new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore) );
-    t.is(error.statusCode, 403);
+    t.is(error.statusCode, 401);
     t.is(error.name, 'ResponseError');
     t.is(error.message, 'Error authorizing user: OAuth token verified_email must be true.');
 });
@@ -345,7 +345,7 @@ test('authorization: should reject if verified_email is not a boolean in OAuth u
     }
 
     const error = await t.throwsAsync( tosapi(validReq, stubbedRes(), new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore) );
-    t.is(error.statusCode, 403);
+    t.is(error.statusCode, 401);
     t.is(error.name, 'ResponseError');
     t.is(error.message, 'Error authorizing user: OAuth token verified_email must be a Boolean.');
 });
@@ -361,7 +361,7 @@ test('authorization: should reject if expires_in is 0 in OAuth userinfo', async 
     }
 
     const error = await t.throwsAsync( tosapi(validReq, stubbedRes(), new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore) );
-    t.is(error.statusCode, 403);
+    t.is(error.statusCode, 401);
     t.is(error.name, 'ResponseError');
     t.is(error.message, 'Error authorizing user: OAuth token has expired (expires_in: 0)');
 });
@@ -376,7 +376,7 @@ test('authorization: should reject if expires_in is negative in OAuth userinfo',
     }
 
     const error = await t.throwsAsync( tosapi(validReq, stubbedRes(), new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore) );
-    t.is(error.statusCode, 403);
+    t.is(error.statusCode, 401);
     t.is(error.name, 'ResponseError');
     t.is(error.message, 'Error authorizing user: OAuth token has expired (expires_in: -444)');
 });
@@ -391,7 +391,7 @@ test('authorization: should reject if expires_in is not a number in OAuth userin
     }
 
     const error = await t.throwsAsync( tosapi(validReq, stubbedRes(), new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore) );
-    t.is(error.statusCode, 403);
+    t.is(error.statusCode, 401);
     t.is(error.name, 'ResponseError');
     t.is(error.message, 'Error authorizing user: OAuth token expires_in must be a number.');
 });
@@ -407,7 +407,7 @@ test('authorization: should reject if neither audience nor email matches whiteli
     }
 
     const error = await t.throwsAsync( tosapi(validReq, stubbedRes(), new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore) );
-    t.is(error.statusCode, 403);
+    t.is(error.statusCode, 401);
     t.is(error.name, 'ResponseError');
     t.is(error.message, `Error authorizing user: OAuth token has unacceptable audience (${userinfo.audience}) or email (${userinfo.email})`);
 });
