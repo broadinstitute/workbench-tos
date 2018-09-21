@@ -409,7 +409,7 @@ test('authorization: should reject if neither audience nor email matches whiteli
     const error = await t.throwsAsync( tosapi(validReq, stubbedRes(), new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore) );
     t.is(error.statusCode, 401);
     t.is(error.name, 'ResponseError');
-    t.is(error.message, `Error authorizing user: OAuth token has unacceptable audience (${userinfo.audience}) or email (${userinfo.email})`);
+    t.is(error.message, `Error authorizing user: OAuth token must have an acceptable audience (${userinfo.audience}) or email (${userinfo.email})`);
 });
 
 test('authorization: should validate if audience matches whitelisted prefixes but email does not match whitelisted suffixes', async t => {
