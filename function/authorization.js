@@ -116,7 +116,6 @@ class GoogleOAuthAuthorizer {
             return this.callTokenInfoApi(token)
                 .then((userinfo) => {
                     this.validateUserInfo(userinfo);
-                    // TODO: validate audience and/or whitelisted email suffixes
                     return userinfo;
                 })
                 .catch((err) => {
