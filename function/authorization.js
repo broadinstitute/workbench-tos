@@ -97,7 +97,7 @@ class GoogleOAuthAuthorizer {
         }
         // validate audience/email
         if (!this.validateAudienceOrEmail(userinfo.audience.toString(), userinfo.email.toString())) {
-            throw new ResponseError(`OAuth token has unacceptable audience (${userinfo.audience}) or email (${userinfo.email})`, 401);
+            throw new ResponseError(`OAuth token must have an acceptable audience (${userinfo.audience}) or email (${userinfo.email})`, 401);
         };
     }
 
