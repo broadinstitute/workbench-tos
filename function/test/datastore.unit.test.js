@@ -11,6 +11,10 @@ process.env.NODE_ENV = 'test';
 // expects a userinfo object, and echoes that userinfo object back. We do this so different unit tests can specify
 // different users, which is important for the datastore mocks below.
 class SuccessfulMockAuthorizer extends GoogleOAuthAuthorizer {
+    constructor(configObj) {
+        super({audiencePrefixes:[122333444455555,]});
+    }
+
     callTokenInfoApi(userinfoStr) {
         // example userinfo: {user_id: 12321, email: 'fake@fakey.fake'}
         return Promise.resolve(JSON.parse(userinfoStr));
@@ -146,7 +150,7 @@ const getRequest = function(userid, appid = 'FireCloud', tosversion = 20180815.1
         path: '/v1/user/response',
         headers: {
             origin: 'unittest',
-            authorization: `{"user_id": ${userid}, "email": "fake@fakey.fake"}`
+            authorization: `{"user_id": ${userid}, "email": "fake@fakey.fake", "verified_email": true, "audience": 122333444455555, "expires_in": 500}`
         },
         method: 'GET',
         query: {
@@ -162,7 +166,7 @@ const postRequest = function(userid, appid = 'FireCloud', tosversion = 20180815.
         headers: {
             origin: 'unittest',
             'content-type': 'application/json',
-            authorization: `{"user_id": ${userid}, "email": "fake@fakey.fake"}`
+            authorization: `{"user_id": ${userid}, "email": "fake@fakey.fake", "verified_email": true, "audience": 122333444455555, "expires_in": 500}`
         },
         method: 'POST',
         body: {
