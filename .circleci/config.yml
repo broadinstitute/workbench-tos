@@ -27,6 +27,8 @@ jobs:
           paths:
             - ./node_modules
       
+      - run: npm run pretest
+
       - run: npm run test-report
 
       - run:
