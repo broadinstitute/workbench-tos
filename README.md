@@ -25,5 +25,3 @@ To install third-party libraries, first `cd function`, then `npm install`. You w
 1. `cd function` - make sure you're in the right directory. The root of this repostory is NOT the right directory!
 2. `npm install` - get all the third-party dependencies, if you have not done so already. `npm i` is the shorthand.
 3. `npm run lint` - note you need the extra `run` command.
-
-As of this writing, `npm run lint` has a lot of errors! Fixing these is an outstanding TODO.
