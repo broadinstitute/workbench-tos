@@ -27,7 +27,9 @@ jobs:
           paths:
             - ./node_modules
       
-      - run: npm run pretest
+      - run:
+        name: eslint syntax check
+        command: npm run pretest
 
       - run: npm run test-report
 
