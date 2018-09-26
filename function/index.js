@@ -12,7 +12,7 @@ const corsOptions = {
 const cors = require('cors')(corsOptions);
 
 function validateRequestUrl(req) {
-    if (req.path !== '/v1/user/response' && req.path !== '/user/response') {
+    if (req.path != '/v1/user/response' && req.path !== '/user/response') {
         throwResponseError(404);
     }
 }
