@@ -1,3 +1,5 @@
+'use strict';
+
 const test = require('ava');
 const sinon = require('sinon');
 const requestPromiseErrors = require('request-promise-native/errors');
@@ -19,11 +21,17 @@ class FailingMockAuthorizer extends GoogleOAuthAuthorizer {
     }
 }
 
-const dummyUserInfo = {user_id: 12321, email: 'fake@fakey.fake', verified_email: true, audience: 122333444455555, expires_in: 500};
+const dummyUserInfo = {
+    user_id: 12321,
+    email: 'fake@fakey.fake',
+    verified_email: true,
+    audience: 122333444455555,
+    expires_in: 500,
+};
 
 class SuccessfulMockAuthorizer extends GoogleOAuthAuthorizer {
     constructor(configObj) {
-        super({audiencePrefixes:[122333444455555,]});
+        super({audiencePrefixes: [122333444455555]});
     }
 
     callTokenInfoApi(token) {
@@ -33,7 +41,7 @@ class SuccessfulMockAuthorizer extends GoogleOAuthAuthorizer {
 
 class TokenValueTestingAuthorizer extends GoogleOAuthAuthorizer {
     constructor(configObj) {
-        super({audiencePrefixes:[122333444455555,]});
+        super({audiencePrefixes: [122333444455555]});
     }
 
     // if value of token is 'expected-token', succeed; otherwise fail
@@ -43,7 +51,8 @@ class TokenValueTestingAuthorizer extends GoogleOAuthAuthorizer {
         } else {
             const invalidTokenError = new requestPromiseErrors.StatusCodeError(
                 400,
-                {error_description: 'Unit test-thrown error! Expected the token value to be [expected-token] but got [' + token + ']'},
+                {error_description: 'Unit test-thrown error! Expected the token value to be ' +
+                    '[expected-token] but got [' + token + ']'},
                 {}, // copy of the options used for the request; irrelevant for this test
                 {} // full response for the request; irrelevant for this test
             );
@@ -64,17 +73,17 @@ const echoDatastore = {
         return Promise.resolve({
             accepted: true,
             userid: userinfo.user_id,
-            email: userinfo.email
+            email: userinfo.email,
         });
-    }
-}
+    },
+};
 
 function stubbedRes() {
     return {
         setHeader: sinon.stub(),
         send: sinon.stub(),
         json: sinon.stub(),
-        status: sinon.stub().returnsThis()
+        status: sinon.stub().returnsThis(),
     };
 }
 
@@ -83,17 +92,17 @@ test('authorization: should return error if authorizer returns an error', async 
         path: '/v1/user/response',
         headers: {
             origin: 'unittest',
-            authorization: 'fake'
+            authorization: 'fake',
         },
         method: 'GET',
         query: {
             appid: 'FireCloud',
-            tosversion: 20180815.1
-        }
+            tosversion: 20180815.1,
+        },
     };
     const res = stubbedRes();
-    
-	const error = await t.throwsAsync( tosapi(req, res, new FailingMockAuthorizer(), echoDatastore) );
+
+    const error = await t.throwsAsync(tosapi(req, res, new FailingMockAuthorizer(), echoDatastore));
     t.is(error.statusCode, 400);
     t.is(error.name, 'ResponseError');
     t.is(error.message, 'Error authorizing user: Invalid Value');
@@ -104,23 +113,23 @@ test('authorization: should pass userinfo onwards to datastore', async t => {
         path: '/v1/user/response',
         headers: {
             origin: 'unittest',
-            authorization: 'fake'
+            authorization: 'fake',
         },
         method: 'GET',
         query: {
             appid: 'FireCloud',
-            tosversion: 20180815.1
-        }
+            tosversion: 20180815.1,
+        },
     };
     const res = stubbedRes();
-    
+
     return tosapi(req, res, new SuccessfulMockAuthorizer(), echoDatastore)
-        .then( datastoreResult => {
+        .then(datastoreResult => {
             t.is(datastoreResult.userid, dummyUserInfo.user_id);
             t.is(datastoreResult.email, dummyUserInfo.email);
             t.true(datastoreResult.accepted);
         });
-    
+
 });
 
 test('authorization: should replace "Bearer " in the Authorization header', async t => {
@@ -128,18 +137,18 @@ test('authorization: should replace "Bearer " in the Authorization header', asyn
         path: '/v1/user/response',
         headers: {
             origin: 'unittest',
-            authorization: 'Bearer expected-token'
+            authorization: 'Bearer expected-token',
         },
         method: 'GET',
         query: {
             appid: 'FireCloud',
-            tosversion: 20180815.1
-        }
+            tosversion: 20180815.1,
+        },
     };
     const res = stubbedRes();
 
     return tosapi(req, res, new TokenValueTestingAuthorizer(), echoDatastore)
-        .then( datastoreResult => {
+        .then(datastoreResult => {
             t.is(datastoreResult.userid, dummyUserInfo.user_id);
             t.is(datastoreResult.email, dummyUserInfo.email);
             t.true(datastoreResult.accepted);
@@ -151,18 +160,18 @@ test('authorization: should replace "bEArEr " in the Authorization header', asyn
         path: '/v1/user/response',
         headers: {
             origin: 'unittest',
-            authorization: 'bEArEr expected-token'
+            authorization: 'bEArEr expected-token',
         },
         method: 'GET',
         query: {
             appid: 'FireCloud',
-            tosversion: 20180815.1
-        }
+            tosversion: 20180815.1,
+        },
     };
     const res = stubbedRes();
 
     return tosapi(req, res, new TokenValueTestingAuthorizer(), echoDatastore)
-        .then( datastoreResult => {
+        .then(datastoreResult => {
             t.is(datastoreResult.userid, dummyUserInfo.user_id);
             t.is(datastoreResult.email, dummyUserInfo.email);
             t.true(datastoreResult.accepted);
@@ -174,20 +183,21 @@ test('authorization: should not replace "Bear er " in the Authorization header',
         path: '/v1/user/response',
         headers: {
             origin: 'unittest',
-            authorization: 'Bear er expected-token'
+            authorization: 'Bear er expected-token',
         },
         method: 'GET',
         query: {
             appid: 'FireCloud',
-            tosversion: 20180815.1
-        }
+            tosversion: 20180815.1,
+        },
     };
     const res = stubbedRes();
 
-    const error = await t.throwsAsync( tosapi(req, res, new TokenValueTestingAuthorizer(), echoDatastore) );
+    const error = await t.throwsAsync(tosapi(req, res, new TokenValueTestingAuthorizer(), echoDatastore));
     t.is(error.statusCode, 400);
     t.is(error.name, 'ResponseError');
-    t.is(error.message, 'Error authorizing user: Unit test-thrown error! Expected the token value to be [expected-token] but got [Bear er expected-token]');
+    t.is(error.message, 'Error authorizing user: Unit test-thrown error! Expected the token value to be ' +
+        '[expected-token] but got [Bear er expected-token]');
 });
 
 test('authorization: should not replace "bearer " in the middle of the Authorization header', async t => {
@@ -195,20 +205,21 @@ test('authorization: should not replace "bearer " in the middle of the Authoriza
         path: '/v1/user/response',
         headers: {
             origin: 'unittest',
-            authorization: 'does not start with Bearer !!!'
+            authorization: 'does not start with Bearer !!!',
         },
         method: 'GET',
         query: {
             appid: 'FireCloud',
-            tosversion: 20180815.1
-        }
+            tosversion: 20180815.1,
+        },
     };
     const res = stubbedRes();
 
-    const error = await t.throwsAsync( tosapi(req, res, new TokenValueTestingAuthorizer(), echoDatastore) );
+    const error = await t.throwsAsync(tosapi(req, res, new TokenValueTestingAuthorizer(), echoDatastore));
     t.is(error.statusCode, 400);
     t.is(error.name, 'ResponseError');
-    t.is(error.message, 'Error authorizing user: Unit test-thrown error! Expected the token value to be [expected-token] but got [does not start with Bearer !!!]');
+    t.is(error.message, 'Error authorizing user: Unit test-thrown error! Expected the token value to be ' +
+        '[expected-token] but got [does not start with Bearer !!!]');
 });
 
 
@@ -217,8 +228,8 @@ test('authorization: should not replace "bearer " in the middle of the Authoriza
 class ArbitraryUserInfoMockAuthorizer extends GoogleOAuthAuthorizer {
     constructor(testUserInfo) {
         super({
-            audiencePrefixes:[123,778899,],
-            emailSuffixes:['.unit.test','.unittest.email.suffix.two',]
+            audiencePrefixes: [123, 778899],
+            emailSuffixes: ['.unit.test', '.unittest.email.suffix.two'],
         });
         this.testUserInfo = testUserInfo;
     }
@@ -232,15 +243,14 @@ const validReq = {
     path: '/v1/user/response',
     headers: {
         origin: 'unittest',
-        authorization: 'Bearer something'
+        authorization: 'Bearer something',
     },
     method: 'GET',
     query: {
         appid: 'FireCloud',
-        tosversion: 20180815.1
-    }
+        tosversion: 20180815.1,
+    },
 };
-
 
 
 test('authorization: should reject if email key is missing from OAuth userinfo', async t => {
@@ -249,10 +259,11 @@ test('authorization: should reject if email key is missing from OAuth userinfo',
         verified_email: true,
         expires_in: 500,
         audience: '123-somestuff',
-        user_id: 456
-    }
+        user_id: 456,
+    };
 
-    const error = await t.throwsAsync( tosapi(validReq, stubbedRes(), new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore) );
+    const error = await t.throwsAsync(tosapi(validReq, stubbedRes(),
+        new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore));
     t.is(error.statusCode, 401);
     t.is(error.name, 'ResponseError');
     t.is(error.message, 'Error authorizing user: OAuth token does not include email');
@@ -264,10 +275,11 @@ test('authorization: should reject if verified_email key is missing from OAuth u
         // verified_email: true,
         expires_in: 500,
         audience: '123-somestuff',
-        user_id: 456
-    }
+        user_id: 456,
+    };
 
-    const error = await t.throwsAsync( tosapi(validReq, stubbedRes(), new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore) );
+    const error = await t.throwsAsync(tosapi(validReq, stubbedRes(),
+        new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore));
     t.is(error.statusCode, 401);
     t.is(error.name, 'ResponseError');
     t.is(error.message, 'Error authorizing user: OAuth token does not include verified_email');
@@ -280,9 +292,10 @@ test('authorization: should reject if user_id key is missing from OAuth userinfo
         expires_in: 500,
         audience: '123-somestuff',
         // user_id: 456
-    }
+    };
 
-    const error = await t.throwsAsync( tosapi(validReq, stubbedRes(), new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore) );
+    const error = await t.throwsAsync(tosapi(validReq, stubbedRes(),
+        new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore));
     t.is(error.statusCode, 401);
     t.is(error.name, 'ResponseError');
     t.is(error.message, 'Error authorizing user: OAuth token does not include user_id');
@@ -294,10 +307,11 @@ test('authorization: should reject if audience key is missing from OAuth userinf
         verified_email: true,
         expires_in: 500,
         // audience: '123-somestuff',
-        user_id: 456
-    }
+        user_id: 456,
+    };
 
-    const error = await t.throwsAsync( tosapi(validReq, stubbedRes(), new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore) );
+    const error = await t.throwsAsync(tosapi(validReq, stubbedRes(),
+        new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore));
     t.is(error.statusCode, 401);
     t.is(error.name, 'ResponseError');
     t.is(error.message, 'Error authorizing user: OAuth token does not include audience');
@@ -309,15 +323,15 @@ test('authorization: should reject if expires_in key is missing from OAuth useri
         verified_email: true,
         // expires_in: 500,
         audience: '123-somestuff',
-        user_id: 456
-    }
+        user_id: 456,
+    };
 
-    const error = await t.throwsAsync( tosapi(validReq, stubbedRes(), new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore) );
+    const error = await t.throwsAsync(tosapi(validReq, stubbedRes(),
+        new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore));
     t.is(error.statusCode, 401);
     t.is(error.name, 'ResponseError');
     t.is(error.message, 'Error authorizing user: OAuth token does not include expires_in');
 });
-
 
 
 test('authorization: should reject if verified_email is false in OAuth userinfo', async t => {
@@ -326,10 +340,11 @@ test('authorization: should reject if verified_email is false in OAuth userinfo'
         verified_email: false,
         expires_in: 500,
         audience: '123-somestuff',
-        user_id: 456
-    }
+        user_id: 456,
+    };
 
-    const error = await t.throwsAsync( tosapi(validReq, stubbedRes(), new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore) );
+    const error = await t.throwsAsync(tosapi(validReq, stubbedRes(),
+        new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore));
     t.is(error.statusCode, 401);
     t.is(error.name, 'ResponseError');
     t.is(error.message, 'Error authorizing user: OAuth token verified_email must be true.');
@@ -341,10 +356,11 @@ test('authorization: should reject if verified_email is not a boolean in OAuth u
         verified_email: 'sure, why not',
         expires_in: 500,
         audience: '123-somestuff',
-        user_id: 456
-    }
+        user_id: 456,
+    };
 
-    const error = await t.throwsAsync( tosapi(validReq, stubbedRes(), new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore) );
+    const error = await t.throwsAsync(tosapi(validReq, stubbedRes(),
+        new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore));
     t.is(error.statusCode, 401);
     t.is(error.name, 'ResponseError');
     t.is(error.message, 'Error authorizing user: OAuth token verified_email must be a Boolean.');
@@ -357,10 +373,11 @@ test('authorization: should reject if expires_in is 0 in OAuth userinfo', async 
         verified_email: true,
         expires_in: 0,
         audience: '123-somestuff',
-        user_id: 456
-    }
+        user_id: 456,
+    };
 
-    const error = await t.throwsAsync( tosapi(validReq, stubbedRes(), new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore) );
+    const error = await t.throwsAsync(tosapi(validReq, stubbedRes(),
+        new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore));
     t.is(error.statusCode, 401);
     t.is(error.name, 'ResponseError');
     t.is(error.message, 'Error authorizing user: OAuth token has expired (expires_in: 0)');
@@ -372,10 +389,11 @@ test('authorization: should reject if expires_in is negative in OAuth userinfo',
         verified_email: true,
         expires_in: -444,
         audience: '123-somestuff',
-        user_id: 456
-    }
+        user_id: 456,
+    };
 
-    const error = await t.throwsAsync( tosapi(validReq, stubbedRes(), new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore) );
+    const error = await t.throwsAsync(tosapi(validReq, stubbedRes(),
+        new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore));
     t.is(error.statusCode, 401);
     t.is(error.name, 'ResponseError');
     t.is(error.message, 'Error authorizing user: OAuth token has expired (expires_in: -444)');
@@ -387,116 +405,119 @@ test('authorization: should reject if expires_in is not a number in OAuth userin
         verified_email: true,
         expires_in: 'never',
         audience: '123-somestuff',
-        user_id: 456
-    }
+        user_id: 456,
+    };
 
-    const error = await t.throwsAsync( tosapi(validReq, stubbedRes(), new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore) );
+    const error = await t.throwsAsync(tosapi(validReq, stubbedRes(),
+        new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore));
     t.is(error.statusCode, 401);
     t.is(error.name, 'ResponseError');
     t.is(error.message, 'Error authorizing user: OAuth token expires_in must be a number.');
 });
 
 
-test('authorization: should reject if neither audience nor email matches whitelisted prefixes/suffixes', async t => {
+test('authorization: should reject if neither audience nor email matches whitelists', async t => {
     const userinfo = {
         email: 'email@unknown.suffix', // compare to ArbitraryUserInfoMockAuthorizer above
         verified_email: true,
         expires_in: 500,
         audience: '10101-somestuff', // compare to ArbitraryUserInfoMockAuthorizer above
-        user_id: 456
-    }
+        user_id: 456,
+    };
 
-    const error = await t.throwsAsync( tosapi(validReq, stubbedRes(), new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore) );
+    const error = await t.throwsAsync(tosapi(validReq, stubbedRes(),
+        new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore));
     t.is(error.statusCode, 401);
     t.is(error.name, 'ResponseError');
-    t.is(error.message, `Error authorizing user: OAuth token must have an acceptable audience (${userinfo.audience}) or email (${userinfo.email})`);
+    t.is(error.message, 'Error authorizing user: OAuth token must have an acceptable audience ' +
+        `(${userinfo.audience}) or email (${userinfo.email})`);
 });
 
-test('authorization: should validate if audience matches whitelisted prefixes but email does not match whitelisted suffixes', async t => {
+test('authorization: should validate if audience matches whitelist but email does not', async t => {
     const userinfo = {
         email: 'email@unknown.suffix', // compare to ArbitraryUserInfoMockAuthorizer above
-        verified_email: true,
-        expires_in: 500,
-        audience: '778899000000-somestuff', // compare to ArbitraryUserInfoMockAuthorizer above
-        user_id: 456
-    }
-
-    return tosapi(validReq, stubbedRes(), new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore)
-    .then( datastoreResult => {
-        t.is(datastoreResult.userid, userinfo.user_id);
-        t.is(datastoreResult.email, userinfo.email);
-        t.true(datastoreResult.accepted);
-    });
-});
-
-test('authorization: should validate if email matches whitelisted suffixes but audience does not match whitelisted prefixes', async t => {
-    const userinfo = {
-        email: 'email@somewhere.unittest.email.suffix.two', // compare to ArbitraryUserInfoMockAuthorizer above
-        verified_email: true,
-        expires_in: 500,
-        audience: '10101-somestuff', // compare to ArbitraryUserInfoMockAuthorizer above
-        user_id: 456
-    }
-
-    return tosapi(validReq, stubbedRes(), new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore)
-    .then( datastoreResult => {
-        t.is(datastoreResult.userid, userinfo.user_id);
-        t.is(datastoreResult.email, userinfo.email);
-        t.true(datastoreResult.accepted);
-    });
-});
-
-test('authorization: should validate if both email matches whitelisted suffixes and audience matches whitelisted prefixes', async t => {
-    const userinfo = {
-        email: 'email@somewhere.unittest.email.suffix.two', // compare to ArbitraryUserInfoMockAuthorizer above
-        verified_email: true,
-        expires_in: 500,
-        audience: '778899000000-somestuff', // compare to ArbitraryUserInfoMockAuthorizer above
-        user_id: 456
-    }
-
-    return tosapi(validReq, stubbedRes(), new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore)
-    .then( datastoreResult => {
-        t.is(datastoreResult.userid, userinfo.user_id);
-        t.is(datastoreResult.email, userinfo.email);
-        t.true(datastoreResult.accepted);
-    });
-});
-
-test('authorization: should validate if expires_in is a stringified number (we are lenient) in OAuth userinfo', async t => {
-    const userinfo = {
-        email: 'email@somewhere.unittest.email.suffix.two', // compare to ArbitraryUserInfoMockAuthorizer above
-        verified_email: true,
-        expires_in: '777',
-        audience: '778899000000-somestuff', // compare to ArbitraryUserInfoMockAuthorizer above
-        user_id: 456
-    }
-
-    return tosapi(validReq, stubbedRes(), new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore)
-    .then( datastoreResult => {
-        t.is(datastoreResult.userid, userinfo.user_id);
-        t.is(datastoreResult.email, userinfo.email);
-        t.true(datastoreResult.accepted);
-    });
-});
-
-test('authorization: should validate if userinfo contains extra fields', async t => {
-    const userinfo = {
-        email: 'email@somewhere.unittest.email.suffix.two', // compare to ArbitraryUserInfoMockAuthorizer above
         verified_email: true,
         expires_in: 500,
         audience: '778899000000-somestuff', // compare to ArbitraryUserInfoMockAuthorizer above
         user_id: 456,
+    };
+
+    return tosapi(validReq, stubbedRes(), new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore)
+        .then(datastoreResult => {
+            t.is(datastoreResult.userid, userinfo.user_id);
+            t.is(datastoreResult.email, userinfo.email);
+            t.true(datastoreResult.accepted);
+        });
+});
+
+test('authorization: should validate if email matches whitelist but audience does not', async t => {
+    const userinfo = {
+        email: 'email@somewhere.unittest.email.suffix.two', // compare w/ArbitraryUserInfoMockAuthorizer
+        verified_email: true,
+        expires_in: 500,
+        audience: '10101-somestuff', // compare to ArbitraryUserInfoMockAuthorizer above
+        user_id: 456,
+    };
+
+    return tosapi(validReq, stubbedRes(), new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore)
+        .then(datastoreResult => {
+            t.is(datastoreResult.userid, userinfo.user_id);
+            t.is(datastoreResult.email, userinfo.email);
+            t.true(datastoreResult.accepted);
+        });
+});
+
+test('authorization: should validate if both email and audience match whitelist', async t => {
+    const userinfo = {
+        email: 'email@somewhere.unittest.email.suffix.two', // compare w/ArbitraryUserInfoMockAuthorizer
+        verified_email: true,
+        expires_in: 500,
+        audience: '778899000000-somestuff', // compare w/ArbitraryUserInfoMockAuthorizer
+        user_id: 456,
+    };
+
+    return tosapi(validReq, stubbedRes(), new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore)
+        .then(datastoreResult => {
+            t.is(datastoreResult.userid, userinfo.user_id);
+            t.is(datastoreResult.email, userinfo.email);
+            t.true(datastoreResult.accepted);
+        });
+});
+
+test('authorization: should validate if expires_in is a stringified number in OAuth userinfo', async t => {
+    const userinfo = {
+        email: 'email@somewhere.unittest.email.suffix.two', // compare w/ArbitraryUserInfoMockAuthorizer
+        verified_email: true,
+        expires_in: '777',
+        audience: '778899000000-somestuff', // compare w/ArbitraryUserInfoMockAuthorizer
+        user_id: 456,
+    };
+
+    return tosapi(validReq, stubbedRes(), new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore)
+        .then(datastoreResult => {
+            t.is(datastoreResult.userid, userinfo.user_id);
+            t.is(datastoreResult.email, userinfo.email);
+            t.true(datastoreResult.accepted);
+        });
+});
+
+test('authorization: should validate if userinfo contains extra fields', async t => {
+    const userinfo = {
+        email: 'email@somewhere.unittest.email.suffix.two', // compare w/ArbitraryUserInfoMockAuthorizer
+        verified_email: true,
+        expires_in: 500,
+        audience: '778899000000-somestuff', // compare w/ArbitraryUserInfoMockAuthorizer
+        user_id: 456,
         hey: 'there',
         these: 'are',
         some: 'extra',
-        fields: 'okay?'
-    }
+        fields: 'okay?',
+    };
 
     return tosapi(validReq, stubbedRes(), new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore)
-    .then( datastoreResult => {
-        t.is(datastoreResult.userid, userinfo.user_id);
-        t.is(datastoreResult.email, userinfo.email);
-        t.true(datastoreResult.accepted);
-    });
+        .then(datastoreResult => {
+            t.is(datastoreResult.userid, userinfo.user_id);
+            t.is(datastoreResult.email, userinfo.email);
+            t.true(datastoreResult.accepted);
+        });
 });

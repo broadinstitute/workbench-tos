@@ -1,3 +1,5 @@
+'use strict';
+
 const test = require('ava');
 const sinon = require('sinon');
 const { tos } = require('../index');
@@ -9,7 +11,7 @@ function stubbedRes() {
         setHeader: sinon.stub(),
         send: sinon.stub(),
         json: sinon.stub(),
-        status: sinon.stub().returnsThis()
+        status: sinon.stub().returnsThis(),
     };
 }
 
@@ -17,10 +19,10 @@ test('validation: should 404 on incorrect url path', t => {
     const req = {
         path: '/not/correct/user/response/path',
         headers: {
-            origin: 'unittest'
+            origin: 'unittest',
         },
         method: 'GET',
-        query: {}
+        query: {},
     };
     const res = stubbedRes();
 
@@ -37,10 +39,10 @@ test('validation: should 401 on correct path but without Authorization header', 
     const req = {
         path: '/v1/user/response',
         headers: {
-            origin: 'unittest'
+            origin: 'unittest',
         },
         method: 'GET',
-        query: {}
+        query: {},
     };
     const res = stubbedRes();
 
@@ -58,10 +60,10 @@ test('validation: should 400 on GET correct path and Authorization header but wi
         path: '/v1/user/response',
         headers: {
             origin: 'unittest',
-            authorization: 'fake'
+            authorization: 'fake',
         },
         method: 'GET',
-        query: {}
+        query: {},
     };
     const res = stubbedRes();
 
@@ -74,41 +76,18 @@ test('validation: should 400 on GET correct path and Authorization header but wi
     t.deepEqual(res.json.firstCall.args, ['appid must be a String. tosversion must be a Number.']);
 });
 
-test('validation: should 400 on GET correct path and Authorization header but missing tosversion from query params', t => {
+test('validation: should 400 on GET correct path and Authorization header but ' +
+    'missing tosversion from query params', t => {
     const req = {
         path: '/v1/user/response',
         headers: {
             origin: 'unittest',
-            authorization: 'fake'
-        },
-        method: 'GET',
-        query: {
-            appid: 'FireCloud'
-        }
-    };
-    const res = stubbedRes();
-
-    // Call tested function
-    tos(req, res);
-
-    // Verify behavior of tested function
-    t.true(res.json.calledOnce);
-    t.deepEqual(res.status.firstCall.args, [400]);
-    t.deepEqual(res.json.firstCall.args, ['tosversion must be a Number.']);
-});
-
-test('validation: should 400 on GET correct path and Authorization header, but tosversion is non-numeric in query params', t => {
-    const req = {
-        path: '/v1/user/response',
-        headers: {
-            origin: 'unittest',
-            authorization: 'fake'
+            authorization: 'fake',
         },
         method: 'GET',
         query: {
             appid: 'FireCloud',
-            tosversion: 'this is supposed to be a number'
-        }
+        },
     };
     const res = stubbedRes();
 
@@ -121,17 +100,43 @@ test('validation: should 400 on GET correct path and Authorization header, but t
     t.deepEqual(res.json.firstCall.args, ['tosversion must be a Number.']);
 });
 
-test('validation: should 400 on GET correct path and Authorization header but missing appid from query params', t => {
+test('validation: should 400 on GET correct path and Authorization header, but ' +
+    'tosversion is non-numeric in query params', t => {
     const req = {
         path: '/v1/user/response',
         headers: {
             origin: 'unittest',
-            authorization: 'fake'
+            authorization: 'fake',
         },
         method: 'GET',
         query: {
-            tosversion: 20180815.1
-        }
+            appid: 'FireCloud',
+            tosversion: 'this is supposed to be a number',
+        },
+    };
+    const res = stubbedRes();
+
+    // Call tested function
+    tos(req, res);
+
+    // Verify behavior of tested function
+    t.true(res.json.calledOnce);
+    t.deepEqual(res.status.firstCall.args, [400]);
+    t.deepEqual(res.json.firstCall.args, ['tosversion must be a Number.']);
+});
+
+test('validation: should 400 on GET correct path and Authorization header but ' +
+    'missing appid from query params', t => {
+    const req = {
+        path: '/v1/user/response',
+        headers: {
+            origin: 'unittest',
+            authorization: 'fake',
+        },
+        method: 'GET',
+        query: {
+            tosversion: 20180815.1,
+        },
     };
     const res = stubbedRes();
 
@@ -144,26 +149,26 @@ test('validation: should 400 on GET correct path and Authorization header but mi
     t.deepEqual(res.json.firstCall.args, ['appid must be a String.']);
 });
 
-const invalidMethods = ['PUT','DELETE','HEAD','PATCH','TRACE','CONNECT'];
-invalidMethods.forEach( method => {
+const invalidMethods = ['PUT', 'DELETE', 'HEAD', 'PATCH', 'TRACE', 'CONNECT'];
+invalidMethods.forEach(method => {
     test('validation: should 405 on ' + method + ' verb', t => {
         const req = {
             path: '/v1/user/response',
             headers: {
                 origin: 'unittest',
-                authorization: 'fake'
+                authorization: 'fake',
             },
             method: method,
             query: {
                 tosversion: 20180815.1,
-                appid: 'FireCloud'
-            }
+                appid: 'FireCloud',
+            },
         };
         const res = stubbedRes();
-    
+
         // Call tested function
         tos(req, res);
-    
+
         // Verify behavior of tested function
         t.true(res.json.calledOnce);
         t.deepEqual(res.status.firstCall.args, [405]);
@@ -175,9 +180,9 @@ test('validation: should 415 on POST without a content-type', t => {
         path: '/v1/user/response',
         headers: {
             origin: 'unittest',
-            authorization: 'fake'
+            authorization: 'fake',
         },
-        method: 'POST'
+        method: 'POST',
     };
     const res = stubbedRes();
 
@@ -195,9 +200,9 @@ test('validation: should 415 on POST with the wrong content-type', t => {
         headers: {
             origin: 'unittest',
             authorization: 'fake',
-            'content-type': 'application/xml'
+            'content-type': 'application/xml',
         },
-        method: 'POST'
+        method: 'POST',
     };
     const res = stubbedRes();
 
@@ -215,9 +220,9 @@ test('validation: should 400 on POST with the right content-type but no body', t
         headers: {
             origin: 'unittest',
             authorization: 'fake',
-            'content-type': 'application/json'
+            'content-type': 'application/json',
         },
-        method: 'POST'
+        method: 'POST',
     };
     const res = stubbedRes();
 
@@ -236,10 +241,10 @@ test('validation: should 400 on POST with the right content-type but empty body'
         headers: {
             origin: 'unittest',
             authorization: 'fake',
-            'content-type': 'application/json'
+            'content-type': 'application/json',
         },
         body: {},
-        method: 'POST'
+        method: 'POST',
     };
     const res = stubbedRes();
 
@@ -249,7 +254,8 @@ test('validation: should 400 on POST with the right content-type but empty body'
     // Verify behavior of tested function
     t.true(res.json.calledOnce);
     t.deepEqual(res.status.firstCall.args, [400]);
-    t.deepEqual(res.json.firstCall.args, ['accepted must be a Boolean. appid must be a String. tosversion must be a Number.']);
+    t.deepEqual(res.json.firstCall.args,
+        ['accepted must be a Boolean. appid must be a String. tosversion must be a Number.']);
 });
 
 test('validation: should 400 on POST when missing accepted from body', t => {
@@ -258,13 +264,13 @@ test('validation: should 400 on POST when missing accepted from body', t => {
         headers: {
             origin: 'unittest',
             authorization: 'fake',
-            'content-type': 'application/json'
+            'content-type': 'application/json',
         },
         body: {
             appid: 'FireCloud',
-            tosversion: 20180815.1
+            tosversion: 20180815.1,
         },
-        method: 'POST'
+        method: 'POST',
     };
     const res = stubbedRes();
 
@@ -283,14 +289,14 @@ test('validation: should 400 on POST when accepted is non-Boolean in body', t =>
         headers: {
             origin: 'unittest',
             authorization: 'fake',
-            'content-type': 'application/json'
+            'content-type': 'application/json',
         },
         body: {
             appid: 'FireCloud',
             tosversion: 20180815.1,
-            accepted: 'this should be a Boolean. Does truthiness bite us?'
+            accepted: 'this should be a Boolean. Does truthiness bite us?',
         },
-        method: 'POST'
+        method: 'POST',
     };
     const res = stubbedRes();
 
@@ -309,13 +315,13 @@ test('validation: should 400 on POST when missing appid from body', t => {
         headers: {
             origin: 'unittest',
             authorization: 'fake',
-            'content-type': 'application/json'
+            'content-type': 'application/json',
         },
         body: {
             accepted: true,
-            tosversion: 20180815.1
+            tosversion: 20180815.1,
         },
-        method: 'POST'
+        method: 'POST',
     };
     const res = stubbedRes();
 
@@ -334,13 +340,13 @@ test('validation: should 400 on POST when missing tosversion from body', t => {
         headers: {
             origin: 'unittest',
             authorization: 'fake',
-            'content-type': 'application/json'
+            'content-type': 'application/json',
         },
         body: {
             accepted: true,
             appid: 'FireCloud',
         },
-        method: 'POST'
+        method: 'POST',
     };
     const res = stubbedRes();
 
@@ -359,14 +365,14 @@ test('validation: should 400 on POST when tosversion is non-numeric in body', t 
         headers: {
             origin: 'unittest',
             authorization: 'fake',
-            'content-type': 'application/json'
+            'content-type': 'application/json',
         },
         body: {
             accepted: true,
             appid: 'FireCloud',
-            tosversion: 'this is supposed to be a number'
+            tosversion: 'this is supposed to be a number',
         },
-        method: 'POST'
+        method: 'POST',
     };
     const res = stubbedRes();
 
