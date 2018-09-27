@@ -1,3 +1,5 @@
+'use strict';
+
 const { rejection } = require('./responseError');
 
 // Read the project ID from environment
@@ -15,29 +17,30 @@ const kindUserResponse = 'TOSResponse';
 const generateKey = function(keyparts) {
     return datastore.key({
         namespace: appNamespace,
-        path: keyparts
+        path: keyparts,
     });
-}
+};
 
 const generateAppKey = function(appId) {
     return generateKey([kindApplication, appId]);
-}
+};
 
 const generateTosKey = function(appId, tosVersion) {
     return generateKey(tosKeyArrayParts(appId, tosVersion));
-}
+};
 
 const tosKeyArrayParts = function(appId, tosVersion) {
     return [kindApplication, appId, kindTos, tosVersion.toString()];
-}
+};
 
 const generateUserResponseKey = function(appId, tosVersion) {
     let userResponseParts = tosKeyArrayParts(appId, tosVersion);
     userResponseParts.push(kindUserResponse);
     return generateKey(userResponseParts);
-}
+};
 
-// define datastore clients as classes for ease of unit testing - unit tests can mock out parts of these classes.
+// define datastore clients as classes for ease of unit testing;
+// unit tests can mock out parts of these classes.
 class GoogleDatastoreClient {
 
     // ================================
@@ -58,19 +61,21 @@ class GoogleDatastoreClient {
      */
     resultHandler(queryPromise, errorMessages) {
         return queryPromise
-            .then( results => {
-                // results object is an array that contains [0]: array of rows returned; [1]: metadata about the results
+            .then(results => {
+                // results object is an array that contains:
+                // [0]: array of rows returned
+                // [1]: metadata about the results
                 const hits = results[0];
                 if (hits.length === 1) {
                     return hits[0];
-                } else if (hits.length == 0) {
+                } else if (hits.length === 0) {
                     return rejection(errorMessages.none.statusCode, errorMessages.none.message);
                 } else {
-                    // defensive! This should never happen since all known code either sets limit(1) in its query
-                    // or is querying for a specific record id.
+                    // defensive! This should never happen since all known code either sets limit(1)
+                    // in its query or is querying for a specific record id.
                     return rejection(errorMessages.many.statusCode, errorMessages.many.message);
                 }
-            })
+            });
     }
 
 
@@ -81,8 +86,8 @@ class GoogleDatastoreClient {
     // perform the query to datastore. this function is likely to be mocked by tests.
     selectApp(appid) {
         const query = datastore
-        .createQuery(appNamespace, kindApplication)
-        .filter('__key__', generateAppKey(appid));
+            .createQuery(appNamespace, kindApplication)
+            .filter('__key__', generateAppKey(appid));
 
         return datastore.runQuery(query);
     }
@@ -94,9 +99,9 @@ class GoogleDatastoreClient {
             {
                 // see resultHandler comment for expected keys
                 none: {statusCode: 400, message: `Application ${appid} does not exist.`},
-                many: {statusCode: 500, message: 'unexpected: returned too many results'}
+                many: {statusCode: 500, message: 'unexpected: returned too many results'},
             }
-        )
+        );
     }
 
     // handle the datastore query results.
@@ -108,8 +113,8 @@ class GoogleDatastoreClient {
     // perform the query to datastore. this function is likely to be mocked by tests.
     selectTOS(appid, tosversion) {
         const query = datastore
-        .createQuery(appNamespace, kindTos)
-        .filter('__key__', generateTosKey(appid, tosversion));
+            .createQuery(appNamespace, kindTos)
+            .filter('__key__', generateTosKey(appid, tosversion));
 
         return datastore.runQuery(query);
     }
@@ -121,9 +126,9 @@ class GoogleDatastoreClient {
             {
                 // see resultHandler comment for expected keys
                 none: {statusCode: 400, message: `TermsOfService ${appid}/${tosversion} does not exist.`},
-                many: {statusCode: 500, message: 'unexpected: returned too many results'}
+                many: {statusCode: 500, message: 'unexpected: returned too many results'},
             }
-        )
+        );
     }
 
     // ================================
@@ -156,11 +161,11 @@ class GoogleDatastoreClient {
             {
                 // see resultHandler comment for expected keys
                 none: {statusCode: 404},
-                many: {statusCode: 500, message: 'unexpected: returned too many results'}
+                many: {statusCode: 500, message: 'unexpected: returned too many results'},
             }
-        ).then( rec => {
-            // special handling for the user record. We can't rely just on presence/absence of a user response - we have
-            // to also check whether or not the user accepted or declined.
+        ).then(rec => {
+            // special handling for the user record. We can't rely just on presence/absence of a
+            // user response - we have to also check whether or not the user accepted or declined.
             if (rec.accepted) {
                 return rec;
             } else {
@@ -179,21 +184,21 @@ class GoogleDatastoreClient {
             data: [
                 {
                     name: 'userid',
-                    value: userid
+                    value: userid,
                 },
                 {
                     name: 'email',
-                    value: email
+                    value: email,
                 },
                 {
                     name: 'timestamp',
-                    value: new Date().toJSON()
+                    value: new Date().toJSON(),
                 },
                 {
                     name: 'accepted',
-                    value: accepted
+                    value: accepted,
                 },
-            ]
+            ],
         };
 
         return datastore.save(userResponseEntity);
@@ -215,15 +220,11 @@ class GoogleDatastoreClient {
         return Promise.all([appCheck, tosCheck])
             .then(() => {
                 return this.insertUserResponse(userid, email, appid, tosversion, accepted);
-                    // TODO: do we want any validation of the response, or is it safe to rely on datastore
-                    // throwing errors if the insert failed?
-            })
+                // TODO: do we want any validation of the response, or is it safe to rely on datastore
+                // throwing errors if the insert failed?
+            });
     }
 
-}
-
-const getDatastoreClient = function() {
-    return new GoogleDatastoreClient();
 }
 
 module.exports = GoogleDatastoreClient;

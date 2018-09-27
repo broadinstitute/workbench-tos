@@ -11,6 +11,7 @@
   },
   "scripts": {
     "lint": "eslint --ignore-path ../.gitignore .",
+    "pretest": "eslint --ignore-path ../.gitignore .",
     "test": "nyc ava --timeout=30s --verbose test/*test.js",
     "test-report": "mkdir -p test/reports/unit && nyc ava --tap --timeout=30s --verbose test/*test.js > test/reports/unit/ava.tap"
   },

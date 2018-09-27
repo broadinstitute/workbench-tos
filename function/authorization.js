@@ -1,3 +1,5 @@
+'use strict';
+
 // Create persistent/pipelined http client for outbound requests
 const requestPromise = require('request-promise-native');
 const persistentRequest = requestPromise.defaults({forever: true});
@@ -20,7 +22,8 @@ try {
     audiencePrefixes = oauthConfig.audiencePrefixes;
     emailSuffixes = oauthConfig.emailSuffixes;
 } catch (err) {
-    console.warn('could not load OAuth config require. You can ignore this warning if you are running unit tests and have not rendered ctmpls.');
+    console.warn('could not load OAuth config require. You can ignore this warning if you are running ' +
+        'unit tests and have not rendered ctmpls.');
 }
 
 // for replacing the "Bearer " prefix case-insensitively in header values
@@ -29,7 +32,8 @@ const bearerPrefix = /^bearer /i;
 // the object keys we expect to see in the OAuth token from Google
 const userInfoKeys = ['email', 'verified_email', 'user_id', 'audience', 'expires_in'];
 
-// define GoogleOAuthAuthorizer as a class for ease of unit testing - unit tests can mock out parts of these classes.
+// define GoogleOAuthAuthorizer as a class for ease of unit testing;
+// unit tests can mock out parts of these classes.
 class GoogleOAuthAuthorizer {
     // TODO: move validation of Authorization request header into this class
 
@@ -46,11 +50,11 @@ class GoogleOAuthAuthorizer {
             method: 'POST',
             uri: reqUrl,
             auth: {
-            bearer: token
+                bearer: token,
             },
-            json: true
+            json: true,
         };
-        return persistentRequest.post(reqOptions)
+        return persistentRequest.post(reqOptions);
     }
 
     validateAudienceOrEmail(audience, email) {
@@ -82,11 +86,11 @@ class GoogleOAuthAuthorizer {
 
     validateUserInfo(userinfo) {
         // validate all fields exist
-        userInfoKeys.forEach( (key) => {
+        userInfoKeys.forEach((key) => {
             if (!userinfo.hasOwnProperty(key)) {
                 throw new ResponseError(`OAuth token does not include ${key}`, 401);
             }
-        })
+        });
         // validate verified_email is Boolean and true
         const verified = userinfo.verified_email;
         if (!_.isBoolean(verified)) {
@@ -104,22 +108,23 @@ class GoogleOAuthAuthorizer {
         }
         // validate audience/email
         if (!this.validateAudienceOrEmail(userinfo.audience.toString(), userinfo.email.toString())) {
-            throw new ResponseError(`OAuth token must have an acceptable audience (${userinfo.audience}) or email (${userinfo.email})`, 401);
+            throw new ResponseError(`OAuth token must have an acceptable audience (${userinfo.audience}) ` +
+                `or email (${userinfo.email})`, 401);
         };
     }
 
     /**
      * Extracts an Authorization header from the request, then queries
      * Google for token information using that auth header.
-     * 
+     *
      * Returns a Promise that contains Google's tokeninfo response,
      * or rejects with an http status code and error.
-     *  
+     *
      * @param {*} req the original request
      */
     authorize(authHeader) {
         if (authHeader) {
-            const token = authHeader.replace(bearerPrefix,'');
+            const token = authHeader.replace(bearerPrefix, '');
             return this.callTokenInfoApi(token)
                 .then((userinfo) => {
                     this.validateUserInfo(userinfo);
