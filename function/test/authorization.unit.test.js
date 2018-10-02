@@ -228,8 +228,8 @@ test('authorization: should not replace "bearer " in the middle of the Authoriza
 class ArbitraryUserInfoMockAuthorizer extends GoogleOAuthAuthorizer {
     constructor(testUserInfo) {
         super({
-            audiencePrefixes: [123, 778899],
-            emailSuffixes: ['.unit.test', '.unittest.email.suffix.two'],
+            audiencePrefixes: ['123', '778899', '102392942264657484310'],
+            emailSuffixes: ['.unit.test', '.unittest.email.suffix.two', '.gserviceaccount.com'],
         });
         this.testUserInfo = testUserInfo;
     }
@@ -439,6 +439,26 @@ test('authorization: should validate if audience matches whitelist but email doe
         verified_email: true,
         expires_in: 500,
         audience: '778899000000-somestuff', // compare to ArbitraryUserInfoMockAuthorizer above
+        user_id: 456,
+    };
+
+    return tosapi(validReq, stubbedRes(), new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore)
+        .then(datastoreResult => {
+            t.is(datastoreResult.userid, userinfo.user_id);
+            t.is(datastoreResult.email, userinfo.email);
+            t.true(datastoreResult.accepted);
+        });
+});
+
+// if we treat this test audience - 102392942264657484310 - as a number, JavaScript will
+// apply rounding because it doesn't have the right precision. This test verifies we
+// treat audiences as strings everywhere.
+test('authorization: should validate if audience is a large number', async t => {
+    const userinfo = {
+        email: 'email@unknown.suffix', // compare to ArbitraryUserInfoMockAuthorizer above
+        verified_email: true,
+        expires_in: 500,
+        audience: '102392942264657484310', // compare to ArbitraryUserInfoMockAuthorizer above
         user_id: 456,
     };
 
