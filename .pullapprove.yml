@@ -15,8 +15,6 @@ group_defaults:
   author_approval:
     ignored: true # Allow developers to approve their own PRs (use-case: emergency hot fix)
 
-# if, in the future, we set up auto-deploy from github branches to live Cloud Function instances,
-# we can control who has the ability to approve here.
 groups:
   pullapprove-admins:
     conditions:
@@ -25,3 +23,20 @@ groups:
     users:
       - davidangb
       - jmthibault79
+      - davidbernick
+      - dmohs
+      - hjfbynara
+      - dvoet
+      - kcibul
+
+  reviewers:
+    conditions:
+      branches:
+        - develop
+        - alpha
+        - staging
+        - perf
+        - qa
+        - master
+    teams:
+      - workbench-dev
