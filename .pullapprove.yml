@@ -23,6 +23,11 @@ groups:
     users:
       - davidangb
       - jmthibault79
+      - davidbernick
+      - dmohs
+      - hjfbynara
+      - dvoet
+      - kcibul
 
   reviewers:
     conditions:
