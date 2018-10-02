@@ -64,7 +64,7 @@ class GoogleOAuthAuthorizer {
         // does the audience value start with one of our whitelisted prefixes?
         for (const i in this.audiencePrefixes) {
             const prefix = this.audiencePrefixes[i];
-            if (audience.startsWith(prefix.toString())) {
+            if (audience.startsWith(prefix)) {
                 valid = true;
                 break;
             }
@@ -74,7 +74,7 @@ class GoogleOAuthAuthorizer {
         if (!valid) {
             for (const i in this.emailSuffixes) {
                 const suffix = this.emailSuffixes[i];
-                if (email.endsWith(suffix.toString())) {
+                if (email.endsWith(suffix)) {
                     valid = true;
                     break;
                 }
