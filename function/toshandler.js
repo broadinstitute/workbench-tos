@@ -1,14 +1,15 @@
 'use strict';
 
-const validation = require('./validation.js');
+const {validateRequestUrl, validateRequestMethod, validateContentType,
+    requireAuthorizationHeader, validateInputs} = require('./validation.js');
 const { prefixedRejection } = require('./responseError');
 
 const handleRequest = function(req, authorizer, datastore) {
-    validation.validateRequestUrl(req);
-    validation.validateRequestMethod(req);
-    validation.validateContentType(req);
-    const authHeader = validation.requireAuthorizationHeader(req);
-    const reqinfo = validation.validateInputs(req);
+    validateRequestUrl(req);
+    validateRequestMethod(req);
+    validateContentType(req);
+    const authHeader = requireAuthorizationHeader(req);
+    const reqinfo = validateInputs(req);
 
     return authorizer.authorize(authHeader)
         .then(userinfo => {
