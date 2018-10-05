@@ -6,12 +6,6 @@ const throwResponseError = function(statusCode, message) {
     throw new ResponseError(message, statusCode);
 };
 
-const validateRequestUrl = function(req) {
-    if (req.path !== '/v1/user/response' && req.path !== '/user/response') {
-        throwResponseError(404);
-    }
-};
-
 const validateRequestMethod = function(req) {
     if (!['GET', 'POST', 'OPTIONS'].includes(req.method)) {
         throwResponseError(405);
@@ -87,5 +81,5 @@ const validateInputs = function(req) {
     }
 };
 
-module.exports = {throwResponseError, validateRequestUrl, validateRequestMethod, requireAuthorizationHeader,
+module.exports = {throwResponseError, validateRequestMethod, requireAuthorizationHeader,
     validateContentType, validateInputs};

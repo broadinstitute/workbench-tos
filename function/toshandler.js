@@ -1,11 +1,10 @@
 'use strict';
 
-const {validateRequestUrl, validateRequestMethod, validateContentType,
+const {validateRequestMethod, validateContentType,
     requireAuthorizationHeader, validateInputs} = require('./validation.js');
 const { prefixedRejection } = require('./responseError');
 
 const handleRequest = function(req, authorizer, datastore) {
-    validateRequestUrl(req);
     validateRequestMethod(req);
     validateContentType(req);
     const authHeader = requireAuthorizationHeader(req);
