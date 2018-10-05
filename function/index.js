@@ -32,6 +32,9 @@ const routes = {
     '/status': statushandler.handleRequest,
 };
 
+const liveAuthorizer = new GoogleOAuthAuthorizer();
+const liveDatastore = new GoogleDatastoreClient();
+
 /**
  * Implementation of the TOS APIs. This tosapi() function should always either:
  *  - throw an error
@@ -55,8 +58,8 @@ const tosapi = function(req, res, authClient, datastoreClient) {
     if (requestHandler) {
         // unit tests may override these. At runtime, when called as a live Cloud Function from tos(),
         // authClient and datastoreClient will be null.
-        const authorizer = authClient || new GoogleOAuthAuthorizer();
-        const datastore = datastoreClient || new GoogleDatastoreClient();
+        const authorizer = authClient || liveAuthorizer;
+        const datastore = datastoreClient || liveDatastore;
 
         return requestHandler(req, authorizer, datastore);
     } else {

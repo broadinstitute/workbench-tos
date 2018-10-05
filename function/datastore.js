@@ -229,7 +229,7 @@ class GoogleDatastoreClient {
     // STATUS / HEALTH CHECKS
     // ================================
 
-    healthCheckQuery(datastore) {
+    healthCheckQuery() {
         // currently, we query the app/Application kind and take the first entity that datastore returns.
         // we don't care about the entity itself; we just want to know we can reach datastore and that
         // it is capable of returning an entity.

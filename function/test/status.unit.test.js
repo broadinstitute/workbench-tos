@@ -19,35 +19,35 @@ class ErroringMockAuthorizer extends GoogleOAuthAuthorizer {
 
 // mock datastore client that returns healthy
 class HealthyDatastoreClient extends GoogleDatastoreClient {
-    healthCheckQuery(datastore) {
+    healthCheckQuery() {
         return Promise.resolve([ [{}], {metadata: 'HealthyDatastoreClient'} ]);
     };
 }
 
 // mock datastore client that rejects
 class RejectingDatastoreClient extends GoogleDatastoreClient {
-    healthCheckQuery(datastore) {
+    healthCheckQuery() {
         return Promise.reject(new Error('RejectingDatastoreClient says reject!'));
     };
 }
 
 // mock datastore client that errors
 class ErroringDatastoreClient extends GoogleDatastoreClient {
-    healthCheckQuery(datastore) {
+    healthCheckQuery() {
         throw new Error('ErroringDatastoreClient says error!');
     };
 }
 
 // mock datastore client that succeeds but returns zero entities
 class EmptyDatastoreClient extends GoogleDatastoreClient {
-    healthCheckQuery(datastore) {
+    healthCheckQuery() {
         return Promise.resolve([ [], {metadata: 'EmptyDatastoreClient'} ]);
     };
 }
 
 // mock datastore client that succeeds but returns more than one entity
 class TwoEntityDatastoreClient extends GoogleDatastoreClient {
-    healthCheckQuery(datastore) {
+    healthCheckQuery() {
         return Promise.resolve([ [{}, {}], {metadata: 'TwoEntityDatastoreClient'} ]);
     };
 }

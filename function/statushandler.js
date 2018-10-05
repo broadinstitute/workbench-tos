@@ -25,7 +25,9 @@ class StatusCheckResponse {
 }
 
 // an in-memory "cache" to retain status responses.
-// we may eventually move to something like the memory-cache library.
+// we may eventually move to something more elegant.
+// this "cache" is only valid per cloud function instance, and Google will spin
+// up many instances to meet demand.
 let cache = null;
 
 const cacheGet = function() {
@@ -78,6 +80,7 @@ const handleRequest = function(req, authorizer, datastore) {
                 if (cachedLookup) {
                     console.info('returning cached status check.');
                     status = cachedLookup;
+                    return status;
                 } else {
                     console.info('calculating status.');
                     // rewrite this if we ever have more than one subsystem to check
