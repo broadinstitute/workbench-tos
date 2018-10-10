@@ -3,6 +3,8 @@
 const GoogleOAuthAuthorizer = require('./authorization');
 const GoogleDatastoreClient = require('./datastore');
 const toshandler = require('./toshandler.js');
+const statushandler = require('./statushandler.js');
+const {throwResponseError} = require('./validation.js');
 
 // handle CORS requests via 'cors' library
 const corsOptions = {
@@ -11,7 +13,7 @@ const corsOptions = {
 };
 const cors = require('cors')(corsOptions);
 
-function respondWithError(res, error, prefix) {
+const respondWithError = function(res, error, prefix) {
     const code = error.statusCode || 500;
     const pre = prefix || '';
     const respBody = pre + (error.message || JSON.stringify(error));
@@ -21,7 +23,17 @@ function respondWithError(res, error, prefix) {
         console.error(new Error('Error ' + code + ': ' + respBody));
     }
     res.status(code).json(respBody);
-}
+};
+
+const routes = {
+    '/v1/user/response': toshandler.handleRequest,
+    '/user/response': toshandler.handleRequest,
+    '/v1/status': statushandler.handleRequest,
+    '/status': statushandler.handleRequest,
+};
+
+const liveAuthorizer = new GoogleOAuthAuthorizer();
+const liveDatastore = new GoogleDatastoreClient();
 
 /**
  * Implementation of the TOS APIs. This tosapi() function should always either:
@@ -39,15 +51,25 @@ function respondWithError(res, error, prefix) {
  * @param {*} datastoreClient The datastore client class used to read/write persistent data.
  *  This exists as an argument so tests can override it.
  */
-function tosapi(req, res, authClient, datastoreClient) {
-    // unit tests may override these. At runtime, when called as a live Cloud Function from tos(),
-    // authClient and datastoreClient will be null.
-    const authorizer = authClient || new GoogleOAuthAuthorizer();
-    const datastore = datastoreClient || new GoogleDatastoreClient();
+const tosapi = function(req, res, authClient, datastoreClient) {
 
-    // TODO: route to different handlers for userRequest vs. status
-    return toshandler.handleRequest(req, authorizer, datastore);
-}
+    const requestHandler = routes[req.path];
+
+    if (requestHandler) {
+        // unit tests may override these. At runtime, when called as a live Cloud Function from tos(),
+        // authClient and datastoreClient will be null.
+        const authorizer = authClient || liveAuthorizer;
+        const datastore = datastoreClient || liveDatastore;
+
+        return requestHandler(req, authorizer, datastore);
+    } else {
+        throwResponseError(404);
+    }
+};
+
+const responseCode = function(payload) {
+    return (payload instanceof statushandler.StatusCheckResponse && !payload.ok) ? 500 : 200;
+};
 
 /**
  * Main entry point for the Cloud Function.
@@ -57,12 +79,12 @@ function tosapi(req, res, authClient, datastoreClient) {
  * and make its implementation - tosapi() - the testable one.
  *
  */
-function tos(req, res) {
+const tos = function(req, res) {
     try {
         cors(req, res, () => {
             tosapi(req, res, null, null)
                 .then(tosresult => {
-                    res.status(200).json(tosresult);
+                    res.status(responseCode(tosresult)).json(tosresult);
                 })
                 .catch(err => {
                     respondWithError(res, err);
@@ -71,7 +93,6 @@ function tos(req, res) {
     } catch (err) {
         respondWithError(res, err);
     }
-}
+};
 
-exports.tosapi = tosapi;
-exports.tos = tos;
+module.exports = {tosapi, tos, responseCode};

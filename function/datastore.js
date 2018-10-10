@@ -225,6 +225,24 @@ class GoogleDatastoreClient {
             });
     }
 
+    // ================================
+    // STATUS / HEALTH CHECKS
+    // ================================
+
+    healthCheckQuery() {
+        // currently, we query the app/Application kind and take the first entity that datastore returns.
+        // we don't care about the entity itself; we just want to know we can reach datastore and that
+        // it is capable of returning an entity.
+        //
+        // in the future, we may want to query for a specific known-good entity, but this is good
+        // enough for now.
+        const query = datastore
+            .createQuery(appNamespace, kindApplication)
+            .limit(1);
+
+        return datastore.runQuery(query);
+    };
+
 }
 
 module.exports = GoogleDatastoreClient;
