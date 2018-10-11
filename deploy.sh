@@ -3,22 +3,34 @@ set -e
 set -x
 
 VAULT_TOKEN=$1
-GIT_BRANCH=$2
+GIT_BRANCH=$2   # github branch of the code to deploy
+ENVIRONMENT=$3  # hosting environment which the deploy will target
 
-if [ "$GIT_BRANCH" == "develop" ]; then
-    ENVIRONMENT="dev"
-elif [ "$GIT_BRANCH" == "alpha" ]; then
-    ENVIRONMENT="alpha"
-elif [ "$GIT_BRANCH" == "perf" ]; then
-	ENVIRONMENT="perf"
-elif [ "$GIT_BRANCH" == "staging" ]; then
-    ENVIRONMENT="staging"
-elif [ "$GIT_BRANCH" == "master" ]; then
-    ENVIRONMENT="prod"
+set +x
+if [ -z "$ENVIRONMENT" ]; then
+    echo "ENVIRONMENT argument not supplied; inferring from GIT_BRANCH '$GIT_BRANCH'."
+    if [ "$GIT_BRANCH" == "develop" ]; then
+        ENVIRONMENT="dev"
+    elif [ "$GIT_BRANCH" == "alpha" ]; then
+        ENVIRONMENT="alpha"
+    elif [ "$GIT_BRANCH" == "perf" ]; then
+        ENVIRONMENT="perf"
+    elif [ "$GIT_BRANCH" == "staging" ]; then
+        ENVIRONMENT="staging"
+    elif [ "$GIT_BRANCH" == "master" ]; then
+        ENVIRONMENT="prod"
+    else
+        echo "Git branch '$GIT_BRANCH' is not configured to automatically deploy to a target environment"
+        exit 1
+    fi
+elif [[ "$ENVIRONMENT" =~ ^(dev|alpha|perf|staging|prod)$ ]]; then
+    echo "ENVIRONMENT argument supplied as '$ENVIRONMENT'"
 else
-    echo "Git branch '$GIT_BRANCH' is not configured to automatically deploy to a target environment"
+    echo "Environment '$ENVIRONMENT' is not supported for deployments via this script."
     exit 1
 fi
+echo "Deploying branch '$GIT_BRANCH' to environment '$ENVIRONMENT'"
+set -x
 
 PROJECT_NAME="broad-workbench-tos-${ENVIRONMENT}"
 
@@ -41,8 +53,8 @@ docker run --rm -v $PWD:${CODEBASE_PATH} \
 # TODO: is there a smaller version of this image we can use?
 docker run --rm -v $PWD:${CODEBASE_PATH} \
     -e BASE_URL="https://us-central1-broad-dsde-${ENVIRONMENT}.cloudfunctions.net" \
-    google/cloud-sdk:latest /bin/bash -c \
+    google/cloud-sdk:220.0.0 /bin/bash -c \
     "gcloud config set project ${PROJECT_NAME} &&
      gcloud auth activate-service-account --key-file ${CODEBASE_PATH}/${SERVICE_ACCT_KEY_FILE} &&
      cd ${CODEBASE_PATH} &&
-     gcloud beta functions deploy tos --source=./function --trigger-http --runtime nodejs6"
+     gcloud functions deploy tos --source=./function --trigger-http --runtime nodejs6"
