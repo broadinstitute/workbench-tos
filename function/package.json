@@ -20,15 +20,15 @@
     "codecov": "^3.0.4",
     "eslint": "^5.4.0",
     "eslint-config-strongloop": "^2.1.0",
-    "nyc": "^13.0.1",
-    "sinon": "6.1.5",
+    "nyc": "^13.3.0",
+    "sinon": "7.2.4",
     "tap-summary": "^4.0.0",
     "tap-xunit": "^2.3.0"
   },
   "dependencies": {
     "@google-cloud/datastore": "^1.4.1",
     "cors": "^2.8.4",
-    "lodash": "^4.17.10",
+    "lodash": "^4.17.11",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.5"
   }
