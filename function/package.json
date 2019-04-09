@@ -1,0 +1,35 @@
+{
+  "name": "tos",
+  "version": "0.0.1",
+  "private": true,
+  "description": "TOS APIs for Workbench",
+  "license": "MIT",
+  "author": "Broad Institute",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/broadinstitute/workbench-tos"
+  },
+  "scripts": {
+    "lint": "eslint --ignore-path ../.gitignore .",
+    "pretest": "eslint --ignore-path ../.gitignore .",
+    "test": "nyc ava --timeout=30s --verbose test/*test.js",
+    "test-report": "mkdir -p test/reports/unit && nyc ava --tap --timeout=30s --verbose test/*test.js > test/reports/unit/ava.tap"
+  },
+  "devDependencies": {
+    "ava": "1.0.0-beta.7",
+    "codecov": "^3.0.4",
+    "eslint": "^5.4.0",
+    "eslint-config-strongloop": "^2.1.0",
+    "nyc": "^13.3.0",
+    "sinon": "7.2.4",
+    "tap-summary": "^4.0.0",
+    "tap-xunit": "^2.3.0"
+  },
+  "dependencies": {
+    "@google-cloud/datastore": "^1.4.1",
+    "cors": "^2.8.4",
+    "lodash": "^4.17.11",
+    "request": "^2.88.0",
+    "request-promise-native": "^1.0.5"
+  }
+}

@@ -1,0 +1,60 @@
+# Javascript Node CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-javascript/ for more details
+#
+version: 2
+jobs:
+  build:
+    docker:
+      # This Cloud Function uses the Node.js 6 runtime
+      - image: circleci/node:6.14
+
+    # all the Node.js code is in the subdirectory "function". Set this as the default working directory
+    # but make sure to override the working dir for steps like checkout.
+    working_directory: ~/repo/function
+
+    steps:
+      - checkout:
+          path: ~/repo
+      
+      - restore_cache: # special step to restore the dependency cache 
+          key: dependency-cache-{{ checksum "package.json" }}
+      
+      - run: npm install
+      
+      - save_cache: # special step to save the dependency cache
+          key: dependency-cache-{{ checksum "package.json" }}
+          paths:
+            - ./node_modules
+      
+      - run:
+          name: eslint syntax check
+          command: npm run pretest
+
+      - run: npm run test-report
+
+      - run:
+          name: test report to junit xml
+          command: './node_modules/.bin/tap-xunit < test/reports/unit/ava.tap > test/reports/unit/ava.xml'
+          when: always # so we always get test summaries in circle
+
+      - run:
+          name: test report to human-readable
+          command: './node_modules/.bin/tap-summary --no-ansi - < test/reports/unit/ava.tap > test/reports/unit/ava.txt'
+          when: always # so we always get test summaries in circle
+
+      - run:
+          name: code-coverage
+          command: './node_modules/.bin/nyc report --reporter=lcov --report-dir=test/reports/coverage'
+          when: always # good idea? I think we always want coverage reports but we could choose to skip this if tests fail
+
+      - run:
+          name: codecov upload
+          command: './node_modules/.bin/codecov'
+
+      - store_test_results: # special step to upload test results for display in Test Summary
+          path: ./test/reports
+
+      - store_artifacts: # special step to save test results as as artifact
+          path: ./test/reports
+          destination: test-reports

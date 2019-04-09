@@ -1,0 +1,12 @@
+{"extends": "strongloop",
+ "parserOptions": {
+   "ecmaVersion": 2017
+ },
+ "env": {
+  "es6": true
+},
+ "rules": {
+   "indent": ["error", 4, { "SwitchCase": 1 }],
+   "max-len": ["error", 110, 4]
+ }
+}

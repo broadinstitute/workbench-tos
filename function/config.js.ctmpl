@@ -1,0 +1,14 @@
+{{with $commonSecrets := vault (printf "secret/dsde/firecloud/common/oauth_client_id")}}
+
+// 1) JS is lenient about trailing commas in these arrays
+// 2) JS **needs** the trailing comma if the array contains a single item, e.g. emailSuffixes.
+//      Without the trailing comma, JS will collapse the array.
+const audiencePrefixes = [{{range $index, $element := $commonSecrets.Data.client_ids}}'{{ $element }}',{{end}}];
+const emailSuffixes = ['.gserviceaccount.com',];
+
+module.exports = {
+    audiencePrefixes: audiencePrefixes,
+    emailSuffixes: emailSuffixes
+};
+
+{{end}}

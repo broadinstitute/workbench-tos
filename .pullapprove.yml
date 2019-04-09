@@ -1,0 +1,42 @@
+# http://docs.pullapprove.com/
+# See also the branch protection settings for your repo in github
+# Github branch protections can't let us specify "who" is required to approve a PR
+version: 2
+
+group_defaults:
+  approve_by_comment:
+    enabled: true
+    approve_regex: '^(:\+1:|[aA]pproved)'
+  reset_on_push:
+    enabled: false
+  required: 1
+  github_reviews:
+    enabled: true
+  author_approval:
+    ignored: true # Allow developers to approve their own PRs (use-case: emergency hot fix)
+
+groups:
+  pullapprove-admins:
+    conditions:
+      files:
+        - ".pullapprove.yml"
+    users:
+      - davidangb
+      - jmthibault79
+      - davidbernick
+      - dmohs
+      - hjfbynara
+      - dvoet
+      - kcibul
+
+  reviewers:
+    conditions:
+      branches:
+        - develop
+        - alpha
+        - staging
+        - perf
+        - qa
+        - master
+    teams:
+      - workbench-dev
