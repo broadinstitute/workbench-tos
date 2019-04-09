@@ -25,3 +25,18 @@ To install third-party libraries, first `cd function`, then `npm install`. You w
 1. `cd function` - make sure you're in the right directory. The root of this repostory is NOT the right directory!
 2. `npm install` - get all the third-party dependencies, if you have not done so already. `npm i` is the shorthand.
 3. `npm run lint` - note you need the extra `run` command.
+
+# Broad Internal
+This section applies only to running the workbench-tos codebase within the Broad Institute.
+
+## Deploying
+To deploy the TOS API:
+1. If you are deploying a new version of the codebase, create a tag or release within github for the commit you want to deploy. By convention, we only deploy tagged commits; we do not care about branches of this repo for deploys. If you simply need to deploy/redeploy a pre-existing tag/release, you can skip this step.
+2. Navigate to the `workbench-tos-manual-deploy` Jenkins job in dev Jenkins, and choose "Build with Parameters". Specify appropriate parameters:
+    * `BRANCH_OR_TAG`: specify the github release/tag you wish to deploy.
+    * `TARGET`: specify the runtime environment to which you wish to deploy.
+    * `SLACK_CHANNEL`: as desired, specify the Slack channel to be notified upon the deploy finishing.
+3. Click the Build button.
+4. Verify the deploy succeeded. This step is dependent on your reason for deploying - for instance, if you were deploying to add a feature/fix a bug, you can click through your use case to verify the feature/bugfix.
+
+For deploys to prod, the process is exactly the same, except you will need to work in the prod Jenkins instance, not dev Jenkins.
