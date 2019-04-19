@@ -57,4 +57,4 @@ docker run --rm -v $PWD:${CODEBASE_PATH} \
     "gcloud config set project ${PROJECT_NAME} &&
      gcloud auth activate-service-account --key-file ${CODEBASE_PATH}/${SERVICE_ACCT_KEY_FILE} &&
      cd ${CODEBASE_PATH} &&
-     gcloud functions deploy tos --source=./function --trigger-http --runtime nodejs6"
+     gcloud functions deploy tos --source=./function --trigger-http --runtime nodejs8"
