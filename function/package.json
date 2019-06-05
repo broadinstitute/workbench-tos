@@ -16,7 +16,7 @@
     "test-report": "mkdir -p test/reports/unit && nyc ava --tap --timeout=30s --verbose test/*test.js > test/reports/unit/ava.tap"
   },
   "devDependencies": {
-    "ava": "1.0.0-beta.7",
+    "ava": "^1.4.1",
     "codecov": "^3.5.0",
     "eslint": "^5.16.0",
     "eslint-config-strongloop": "^2.1.0",
