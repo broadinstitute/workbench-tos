@@ -16,20 +16,20 @@
     "test-report": "mkdir -p test/reports/unit && nyc ava --tap --timeout=30s --verbose test/*test.js > test/reports/unit/ava.tap"
   },
   "devDependencies": {
-    "ava": "1.0.0-beta.7",
-    "codecov": "^3.0.4",
-    "eslint": "^5.4.0",
+    "ava": "^1.4.1",
+    "codecov": "^3.5.0",
+    "eslint": "^5.16.0",
     "eslint-config-strongloop": "^2.1.0",
-    "nyc": "^14.0.0",
-    "sinon": "7.2.4",
+    "nyc": "^14.1.1",
+    "sinon": "^7.3.2",
     "tap-summary": "^4.0.0",
     "tap-xunit": "^2.3.0"
   },
   "dependencies": {
     "@google-cloud/datastore": "^1.4.1",
-    "cors": "^2.8.4",
+    "cors": "^2.8.5",
     "lodash": "^4.17.11",
     "request": "^2.88.0",
-    "request-promise-native": "^1.0.5"
+    "request-promise-native": "^1.0.7"
   }
 }
