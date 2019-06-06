@@ -16,6 +16,7 @@
     "test-report": "mkdir -p test/reports/unit && nyc ava --tap --timeout=30s --verbose test/*test.js > test/reports/unit/ava.tap"
   },
   "devDependencies": {
+    "acorn": "^6.1.1",
     "ava": "^1.4.1",
     "codecov": "^3.5.0",
     "eslint": "^5.16.0",
@@ -26,7 +27,7 @@
     "tap-xunit": "^2.3.0"
   },
   "dependencies": {
-    "@google-cloud/datastore": "^2.0.0",
+    "@google-cloud/datastore": "^4.1.0",
     "cors": "^2.8.5",
     "lodash": "^4.17.11",
     "request": "^2.88.0",
