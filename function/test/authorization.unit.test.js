@@ -252,6 +252,35 @@ const validReq = {
     },
 };
 
+test('authorization: should reject if userinfo is null', async t => {
+    const userinfo = null;
+
+    const error = await t.throwsAsync(tosapi(validReq, stubbedRes(),
+        new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore));
+    t.is(error.statusCode, 401);
+    t.is(error.name, 'ResponseError');
+    t.is(error.message, 'Error authorizing user: OAuth response is null');
+});
+
+test('authorization: should reject if userinfo is not an object (string)', async t => {
+    const userinfo = 'not an object!';
+
+    const error = await t.throwsAsync(tosapi(validReq, stubbedRes(),
+        new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore));
+    t.is(error.statusCode, 401);
+    t.is(error.name, 'ResponseError');
+    t.is(error.message, 'Error authorizing user: OAuth response is not an object: string');
+});
+
+test('authorization: should reject if userinfo is not an object (number)', async t => {
+    const userinfo = 1234567890;
+
+    const error = await t.throwsAsync(tosapi(validReq, stubbedRes(),
+        new ArbitraryUserInfoMockAuthorizer(userinfo), echoDatastore));
+    t.is(error.statusCode, 401);
+    t.is(error.name, 'ResponseError');
+    t.is(error.message, 'Error authorizing user: OAuth response is not an object: number');
+});
 
 test('authorization: should reject if email key is missing from OAuth userinfo', async t => {
     const userinfo = {

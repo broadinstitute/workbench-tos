@@ -85,6 +85,14 @@ class GoogleOAuthAuthorizer {
     }
 
     validateUserInfo(userinfo) {
+        if (_.isNull(userinfo)) {
+            throw new ResponseError('OAuth response is null', 401);
+        };
+
+        if (!_.isObject(userinfo)) {
+            throw new ResponseError(`OAuth response is not an object: ${typeof userinfo}`, 401);
+        };
+
         // validate all fields exist
         userInfoKeys.forEach((key) => {
             if (!userinfo.hasOwnProperty(key)) {
@@ -131,6 +139,9 @@ class GoogleOAuthAuthorizer {
                     return userinfo;
                 })
                 .catch((err) => {
+                    if (err.statusCode && process.env.NODE_ENV !== 'test') {
+                        console.error(`Tokeninfo API responded with error: ${JSON.stringify(err)}`);
+                    }
                     const statusCode = err.statusCode || 400;
                     const requestError = err.error || {};
                     const message = requestError.error_description || err.message || JSON.stringify(err);

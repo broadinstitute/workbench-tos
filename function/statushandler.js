@@ -82,7 +82,6 @@ const handleRequest = function(req, authorizer, datastore) {
                     status = cachedLookup;
                     return status;
                 } else {
-                    console.info('calculating status.');
                     // rewrite this if we ever have more than one subsystem to check
                     return checkDatastoreStatus(datastore)
                         .then(datastoreStatus => {
