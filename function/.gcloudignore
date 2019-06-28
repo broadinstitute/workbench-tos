@@ -18,4 +18,5 @@
 .nyc_output
 config.js.ctmpl
 node_modules
+srcclr.yml
 test
