@@ -16,7 +16,7 @@
     "test-report": "mkdir -p test/reports/unit && nyc ava --tap --timeout=30s --verbose test/*test.js > test/reports/unit/ava.tap"
   },
   "devDependencies": {
-    "acorn": "^6.1.1",
+    "acorn": "^6.4.1",
     "ava": "^2.2.0",
     "codecov": "^3.5.0",
     "eslint": "^6.2.2",
