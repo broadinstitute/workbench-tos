@@ -55,7 +55,7 @@ docker run --rm -v $PWD:${CODEBASE_PATH} \
 # but it is not set automatically for nodejs 10; therefore we set it here during deploy.
 docker run --rm -v $PWD:${CODEBASE_PATH} \
     -e BASE_URL="https://us-central1-broad-dsde-${ENVIRONMENT}.cloudfunctions.net" \
-    google/cloud-sdk:308.0.0 /bin/bash -c \
+    google/cloud-sdk:307.0.0 /bin/bash -c \
     "gcloud config set project ${PROJECT_NAME} &&
      gcloud auth activate-service-account --key-file ${CODEBASE_PATH}/${SERVICE_ACCT_KEY_FILE} &&
      cd ${CODEBASE_PATH} &&
