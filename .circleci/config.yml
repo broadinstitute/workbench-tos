@@ -6,8 +6,8 @@ version: 2
 jobs:
   build:
     docker:
-      # This Cloud Function uses the Node.js 8 runtime
-      - image: circleci/node:8.15
+      # This Cloud Function uses the Node.js 10 runtime
+      - image: circleci/node:10.18.1
 
     # all the Node.js code is in the subdirectory "function". Set this as the default working directory
     # but make sure to override the working dir for steps like checkout.
