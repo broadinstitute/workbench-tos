@@ -30,8 +30,10 @@ jobs:
       working-directory: function
     - name: Make coverage dir
       run: mkdir .nyc_output
+      working-directory: function
     - name: Calculate coverage
       run: ./node_modules/.bin/nyc report --reporter=lcov
       working-directory: function
     - name: Upload to codecov
       run: ./node_modules/.bin/codecov
+      working-directory: function
