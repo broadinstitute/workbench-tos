@@ -28,15 +28,15 @@ jobs:
       # see https://docs.github.com/en/free-pro-team@latest/actions/guides/caching-dependencies-to-speed-up-workflows
       run: npm ci
       working-directory: function
-    - name: Make coverage dir
-      run: mkdir .nyc_output
+    - name: Make coverage dirs
+      run: mkdir .nyc_output; mkdir test/reports
       working-directory: function
     - name: Calculate coverage
-      run: ./node_modules/.bin/nyc report --reporter=lcov
+      run: ./node_modules/.bin/nyc report --reporter=lcov --report-dir=test/reports
       working-directory: function
     - name: Upload to codecov
       uses: codecov/codecov-action@v1
       with:
         fail_ci_if_error: false
-        directory: function/.nyc_output
-        verbose: true # optional (default = false)
+        directory: function/test/reports
+        verbose: false # optional (default = false)
