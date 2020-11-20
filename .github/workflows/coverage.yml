@@ -13,9 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        # this service deploys to Cloud Functions using nodejs 10 runtime. We test 12
-        # proactively for the future day when we'll upgrade.
-        node-version: [10.x, 12.x]
+        node-version: [10.x]
 
     steps:
     - uses: actions/checkout@v2
@@ -29,14 +27,14 @@ jobs:
       run: npm ci
       working-directory: function
     - name: Make coverage dirs
-      run: mkdir .nyc_output; mkdir test/reports
+      run: mkdir .nyc_output
       working-directory: function
     - name: Calculate coverage
-      run: ./node_modules/.bin/nyc report --reporter=lcov --report-dir=test/reports
+      run: ./node_modules/.bin/nyc report --reporter=text-lcov > test/coverage.lcov
       working-directory: function
     - name: Upload to codecov
       uses: codecov/codecov-action@v1
       with:
         fail_ci_if_error: false
-        directory: function/test/reports
+        file: function/test/coverage.lcov
         verbose: false # optional (default = false)
