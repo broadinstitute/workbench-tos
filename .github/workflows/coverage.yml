@@ -1,5 +1,5 @@
 
-name: Unit Test and Syntax Lint
+name: Code Coverage
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
     branches: [ develop ]
 
 jobs:
-  test:
+  coverage:
     runs-on: ubuntu-latest
 
     strategy:
@@ -28,10 +28,8 @@ jobs:
       # see https://docs.github.com/en/free-pro-team@latest/actions/guides/caching-dependencies-to-speed-up-workflows
       run: npm ci
       working-directory: function
-    - name: Test
-      # note that eslint runs on every execution of "npm test" because it is defined as a pretest
-      # task in package.json. Thus, we don't need a separate lint action or step.
-      run: npm test
+    - name: Calculate coverage
+      run: './node_modules/.bin/nyc report --reporter=lcov --report-dir=test/reports/coverage'
       working-directory: function
-
-
+    - name: Upload to codecov
+      run: './node_modules/.bin/codecov'
