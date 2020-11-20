@@ -1,5 +1,5 @@
 
-name: Unit Tests
+name: Unit Test and Syntax Lint
 
 on:
   push:
@@ -25,9 +25,13 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
     - name: Install dependencies
+      # if "npm ci" becomes too slow or unreliable, switch to caching dependencies
+      # see https://docs.github.com/en/free-pro-team@latest/actions/guides/caching-dependencies-to-speed-up-workflows
       run: npm ci
       working-directory: function
     - name: Test
+      # note that eslint runs on every execution of "npm test" because it is defined as a pretest
+      # task in package.json. Thus, we don't need a separate lint action or step.
       run: npm test
       working-directory: function
 
