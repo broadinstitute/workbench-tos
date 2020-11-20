@@ -29,7 +29,7 @@ jobs:
       run: npm ci
       working-directory: function
     - name: Calculate coverage
-      run: './node_modules/.bin/nyc report --reporter=lcov --report-dir=test/reports/coverage'
+      run: './node_modules/.bin/nyc report --reporter=lcov'
       working-directory: function
     - name: Upload to codecov
       run: './node_modules/.bin/codecov'
