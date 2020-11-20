@@ -15,6 +15,8 @@ if [ -z "$ENVIRONMENT" ]; then
         ENVIRONMENT="alpha"
     elif [ "$GIT_BRANCH" == "perf" ]; then
         ENVIRONMENT="perf"
+    elif [ "$GIT_BRANCH" == "qa" ]; then
+        ENVIRONMENT="qa"
     elif [ "$GIT_BRANCH" == "staging" ]; then
         ENVIRONMENT="staging"
     elif [ "$GIT_BRANCH" == "master" ]; then
@@ -23,7 +25,7 @@ if [ -z "$ENVIRONMENT" ]; then
         echo "Git branch '$GIT_BRANCH' is not configured to automatically deploy to a target environment"
         exit 1
     fi
-elif [[ "$ENVIRONMENT" =~ ^(dev|alpha|perf|staging|prod)$ ]]; then
+elif [[ "$ENVIRONMENT" =~ ^(dev|alpha|perf|qa|staging|prod)$ ]]; then
     echo "ENVIRONMENT argument supplied as '$ENVIRONMENT'"
 else
     echo "Environment '$ENVIRONMENT' is not supported for deployments via this script."
