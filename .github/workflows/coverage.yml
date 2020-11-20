@@ -35,5 +35,8 @@ jobs:
       run: ./node_modules/.bin/nyc report --reporter=lcov
       working-directory: function
     - name: Upload to codecov
-      run: ./node_modules/.bin/codecov
-      working-directory: function
+      uses: codecov/codecov-action@v1
+      with:
+        fail_ci_if_error: false
+        directory: function/.nyc_output
+        verbose: true # optional (default = false)
