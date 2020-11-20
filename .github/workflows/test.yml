@@ -40,13 +40,13 @@ jobs:
     
     - name: Calculate coverage
       # only for node 10
-      if: ${{ matrix.node-version == 10.x }}
+      if: ${{ matrix.node-version == '10.x' }}
       run: ./node_modules/.bin/nyc report --reporter=lcov --report-dir=test/reports/coverage
       working-directory: function
     
     - name: Upload to codecov
       # only for node 10
-      if: ${{ matrix.node-version == 10.x }}
+      if: ${{ matrix.node-version == '10.x' }}
       uses: codecov/codecov-action@v1
       with:
         fail_ci_if_error: false
