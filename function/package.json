@@ -27,7 +27,7 @@
     "tap-xunit": "^2.3.0"
   },
   "dependencies": {
-    "@google-cloud/datastore": "^4.1.0",
+    "@google-cloud/datastore": "^6.3.0",
     "cors": "^2.8.5",
     "lodash": "^4.17.14",
     "request": "^2.88.0",
