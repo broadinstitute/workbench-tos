@@ -28,8 +28,10 @@ jobs:
       # see https://docs.github.com/en/free-pro-team@latest/actions/guides/caching-dependencies-to-speed-up-workflows
       run: npm ci
       working-directory: function
+    - name: Make coverage dir
+      run: mkdir .nyc_output
     - name: Calculate coverage
-      run: './node_modules/.bin/nyc report --reporter=lcov'
+      run: ./node_modules/.bin/nyc report --reporter=lcov
       working-directory: function
     - name: Upload to codecov
-      run: './node_modules/.bin/codecov'
+      run: ./node_modules/.bin/codecov
