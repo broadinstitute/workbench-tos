@@ -14,7 +14,7 @@ const kindApplication = 'Application';
 const kindTos = 'TermsOfService';
 const kindUserResponse = 'TOSResponse';
 
-const generateKey = function(keyparts) {
+const generateKey =            function(keyparts) {
     return datastore.key({
         namespace: appNamespace,
         path: keyparts,
