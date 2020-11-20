@@ -39,14 +39,14 @@ jobs:
       working-directory: function
     
     - name: Calculate coverage
-      run: ./node_modules/.bin/nyc report --reporter=lcov > test/coverage.lcov
+      run: ./node_modules/.bin/nyc report --reporter=lcov --report-dir=test/reports/coverage
       working-directory: function
     
     - name: Upload to codecov
       uses: codecov/codecov-action@v1
       with:
         fail_ci_if_error: false
-        file: function/test/coverage.lcov
+        file: function/test/reports/coverage/lcov.info
         verbose: false # optional (default = false)
 
 
