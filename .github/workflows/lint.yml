@@ -14,6 +14,8 @@ jobs:
 
     strategy:
       matrix:
+        # this service deploys to Cloud Functions using nodejs 10 runtime. We test 12
+        # proactively for the future day when we'll upgrade.
         node-version: [10.x, 12.x]
 
     steps:
@@ -22,6 +24,9 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
+    - name: Install dependencies
+      run: npm ci
+      working-directory: function
     - name: Test
       run: npm run lint
       working-directory: function
