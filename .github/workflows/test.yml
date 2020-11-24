@@ -3,7 +3,8 @@ name: Unit Test and Syntax Lint
 
 on:
   push:
-    branches: [ develop ]
+    paths-ignore:
+      - 'README.md'
   pull_request:
     branches: [ develop ]
 
