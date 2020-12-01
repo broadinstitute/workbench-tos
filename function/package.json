@@ -12,8 +12,7 @@
   "scripts": {
     "lint": "eslint --ignore-path ../.gitignore .",
     "pretest": "eslint --ignore-path ../.gitignore .",
-    "test": "nyc ava --timeout=30s --verbose test/*test.js",
-    "test-report": "mkdir -p test/reports/unit && nyc ava --tap --timeout=30s --verbose test/*test.js > test/reports/unit/ava.tap"
+    "test": "nyc ava --timeout=30s --verbose test/*test.js"
   },
   "devDependencies": {
     "acorn": "^8.0.4",
@@ -22,9 +21,7 @@
     "eslint": "^6.2.2",
     "eslint-config-strongloop": "^2.1.0",
     "nyc": "^15.1.0",
-    "sinon": "^7.3.2",
-    "tap-summary": "^4.0.0",
-    "tap-xunit": "^2.3.0"
+    "sinon": "^7.3.2"
   },
   "dependencies": {
     "@google-cloud/datastore": "^6.3.0",
