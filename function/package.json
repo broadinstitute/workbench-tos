@@ -21,7 +21,7 @@
     "codecov": "^3.5.0",
     "eslint": "^6.2.2",
     "eslint-config-strongloop": "^2.1.0",
-    "nyc": "^14.1.1",
+    "nyc": "^15.1.0",
     "sinon": "^7.3.2",
     "tap-summary": "^4.0.0",
     "tap-xunit": "^2.3.0"
