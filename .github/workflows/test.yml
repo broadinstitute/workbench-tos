@@ -14,9 +14,9 @@ jobs:
 
     strategy:
       matrix:
-        # this service deploys to Cloud Functions using nodejs 10 runtime. We test 12
+        # this service deploys to Cloud Functions using nodejs 14 runtime. We test 16
         # proactively for the future day when we'll upgrade.
-        node-version: [10.x, 12.x]
+        node-version: [14.x, 16.x]
 
     steps:
     
@@ -40,14 +40,14 @@ jobs:
       working-directory: function
     
     - name: Calculate coverage
-      # only for node 10
-      if: ${{ matrix.node-version == '10.x' }}
+      # only for node 14
+      if: ${{ matrix.node-version == '14.x' }}
       run: ./node_modules/.bin/nyc report --reporter=lcov --report-dir=test/reports/coverage
       working-directory: function
     
     - name: Upload to codecov
-      # only for node 10
-      if: ${{ matrix.node-version == '10.x' }}
+      # only for node 14
+      if: ${{ matrix.node-version == '14.x' }}
       uses: codecov/codecov-action@v1
       with:
         fail_ci_if_error: false

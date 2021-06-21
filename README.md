@@ -3,11 +3,11 @@ APIs - currently implemented as a Cloud Function - for users' responses to Terms
 
 # Developer setup
 ## Prerequisites
-This codebase requires *[npm](https://docs.npmjs.com/getting-started/what-is-npm)* and *[Node.js](https://nodejs.org/en/)*. Specifically, it wants Node.js version 10.18.1, or whatever minor/patch version Google documents at https://cloud.google.com/functions/docs/concepts/nodejs-10-runtime.
+This codebase requires *[npm](https://docs.npmjs.com/getting-started/what-is-npm)* and *[Node.js](https://nodejs.org/en/)*. Specifically, it wants Node.js version 14, or any specific minor/patch version Google documents at https://cloud.google.com/functions/docs/concepts/exec#runtimes.
 
 If you already have a different version of Node on your system, you might be interested in *[nvm](https://github.com/creationix/nvm)*.
 
-If you have a hard time finding Node 10.18.1 to install, you really might be interested in *[nvm](https://github.com/creationix/nvm)*. First, install *nvm* according to their instructions. Then, use *nvm* to install and use the appropriate version of Node, e.g. `nvm install v10.18.1`. *nvm* will automatically use the version of Node you just installed, but for good measure you can `nvm ls` to see installed versions, then `nvm use v10.18.1` to use that version if you aren't already using it.
+If you have a hard time finding Node 14 to install, you really might be interested in *[nvm](https://github.com/creationix/nvm)*. First, install *nvm* according to their instructions. Then, use *nvm* to install and use the appropriate version of Node, e.g. `nvm install v14`. *nvm* will automatically use the version of Node you just installed, but for good measure you can `nvm ls` to see installed versions, then `nvm use v14` to use that version if you aren't already using it.
 
 To install third-party libraries, first `cd function`, then `npm install`. You will need to `npm install` any time [package.json](function/package.json) or [package-lock.json](function/package-lock.json) changes. Conversely, if those files have not changed since your last install, you should not have to run `npm install`.
 
